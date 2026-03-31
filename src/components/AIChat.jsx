@@ -64,7 +64,7 @@ For follow-up questions or conversation, respond as plain text (not JSON).
 Always suggest 3-4 meals unless specified otherwise.
 Ingredient lists: 5-8 items. Steps: 3-5 instructions. Variations: always include exactly 3, covering protein swap, sauce/flavor change, and vegetable swap.`;
 
-export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites }) {
+export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites, apiKey, onNeedKey }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -93,9 +93,20 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
         content: m.rawContent || m.content,
       }));
 
+      if (!apiKey) {
+        setLoading(false);
+        onNeedKey?.();
+        return;
+      }
+
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 2000,
@@ -156,7 +167,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
   return (
     <div className="aichat">
       <div>
-        <h1 className="section-title">AI Chef</h1>
+        <h1 className="section-title">Chef Claude</h1>
         <p className="section-sub">Tell me what you're craving and I'll find the perfect family dinner</p>
       </div>
 
@@ -226,6 +237,13 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
             )}
           </div>
 
+          {!apiKey && (
+            <div className="no-key-banner">
+              <span>⚿</span>
+              <span>Add your Anthropic API key to use Chef Claude</span>
+              <button className="btn btn-primary btn-sm" onClick={onNeedKey}>Add Key</button>
+            </div>
+          )}
           <div className="chat-input-area">
             <div className="quick-prompts">
               {quickPrompts.map(q => (
