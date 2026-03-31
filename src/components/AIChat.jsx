@@ -1,12 +1,28 @@
 import { useState } from "react";
+import RecipeModal from "./RecipeModal";
 import "./AIChat.css";
 
-const SYSTEM_PROMPT = `You are NightFuel, a family dinner assistant. Suggest healthy, flavorful weeknight dinners for a family with kids. Focus on:
-- Low carb or moderate carb meals
+const SYSTEM_PROMPT = `You are NightFuel, a family dinner assistant. Suggest healthy, flavorful weeknight dinners for a family with kids.
+
+FAMILY PREFERENCES:
+- Proteins they regularly buy: lean ground beef (90/10), ground chicken, chicken breast, skinless chicken thighs, salmon fillets, pork loin, pork chops, flank steak, shrimp
+- They like most vegetables
+- Cuisine styles they enjoy: American, Greek, Italian, Mexican, Asian
+- They do NOT like casseroles
+- They prefer simple meals: protein + simple sauce + sides
+- Easy weeknight cooking — nothing fussy or overly complex
+
+HEALTH GOALS:
+- Low carb or moderate carb
 - High protein (30g+ per serving ideal)
 - Low calorie (under 600 cal/serving)
-- Kid-friendly but NOT boring — think exciting flavors, global cuisines, fun presentations
+- Kid-friendly but NOT boring
+
+COOKING STYLE:
 - Ready in 45 minutes or less
+- Simple techniques: grilling, pan-searing, roasting, stir-fry, skillet meals
+- Clean flavors, not heavy sauces
+- Prioritize meals from their existing protein list whenever possible
 
 When the user asks for meal ideas, respond ONLY with valid JSON (no markdown, no backticks, no explanation) in this exact format:
 {
@@ -19,15 +35,34 @@ When the user asks for meal ideas, respond ONLY with valid JSON (no markdown, no
       "protein": 38,
       "carbs": 12,
       "cookTime": "30 min",
-      "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"]
+      "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"],
+      "steps": [
+        { "step": 1, "title": "Prep", "instruction": "Pat chicken dry and season with salt, pepper, and garlic powder.", "time": null },
+        { "step": 2, "title": "Sear", "instruction": "Heat oil in a skillet over medium-high. Cook chicken 5-6 min per side until golden.", "time": "12 min" },
+        { "step": 3, "title": "Rest & Serve", "instruction": "Let rest 3 minutes. Serve with roasted broccoli and a squeeze of lemon.", "time": "3 min" }
+      ],
+      "variations": [
+        {
+          "label": "Swap the protein",
+          "suggestion": "Use salmon fillets instead — reduce cook time to 4 min per side and finish with a squeeze of lemon."
+        },
+        {
+          "label": "Change the sauce",
+          "suggestion": "Sub the soy sauce for coconut aminos + a spoonful of peanut butter for a Thai-style peanut glaze."
+        },
+        {
+          "label": "Swap the vegetable",
+          "suggestion": "Try asparagus or snap peas instead of broccoli — roast at the same temp for 10 minutes."
+        }
+      ]
     }
   ],
   "message": "A short friendly message about these suggestions"
 }
 
-For follow-up questions or conversation that isn't requesting meals, respond as plain text (not JSON).
-Always suggest 3-4 meals per request unless otherwise specified.
-Keep ingredient lists to 5-8 items that are easy to find at any grocery store.`;
+For follow-up questions or conversation, respond as plain text (not JSON).
+Always suggest 3-4 meals unless specified otherwise.
+Ingredient lists: 5-8 items. Steps: 3-5 instructions. Variations: always include exactly 3, covering protein swap, sauce/flavor change, and vegetable swap.`;
 
 export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites }) {
   const [messages, setMessages] = useState([
@@ -40,6 +75,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [addTarget, setAddTarget] = useState({});
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const unplannedDays = days.filter(d => !week[d]);
 
@@ -62,7 +98,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
+          max_tokens: 2000,
           system: SYSTEM_PROMPT,
           messages: apiMessages,
         }),
@@ -109,12 +145,12 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
   };
 
   const quickPrompts = [
-    "Surprise me with something fun",
+    "Surprise me",
     "Something with chicken",
-    "Under 30 minutes please",
-    "Kid-approved meals",
-    "Mexican or Asian flavors",
-    "Something with ground beef",
+    "Under 30 minutes",
+    "Kid-approved",
+    "Mexican or Asian",
+    "Ground beef tonight",
   ];
 
   return (
@@ -138,7 +174,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
                         {msg.meals.map((meal, mi) => (
                           <div key={mi} className="meal-card">
                             <div className="meal-top">
-                              <div className="meal-name">{meal.name}</div>
+                              <div className="meal-name" onClick={() => setSelectedMeal(meal)} style={{ cursor: "pointer" }}>{meal.name}</div>
                               <span className="cook-time">⏱ {meal.cookTime}</span>
                             </div>
                             <div className="meal-meta">
@@ -151,9 +187,8 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
                               {meal.carbs && <span><strong>{meal.carbs}g</strong> carbs</span>}
                             </div>
                             <div className="meal-actions">
-                              <button className="btn btn-primary btn-sm" onClick={() => setAddTarget(t => ({ ...t, [mi]: !t[mi] }))}>
-                                + Add to week
-                              </button>
+                              <button className="btn btn-primary btn-sm" onClick={() => setAddTarget(t => ({ ...t, [mi]: !t[mi] }))}>+ Add to week</button>
+                              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
                               <button className="btn btn-ghost btn-sm" onClick={() => onFavorite(meal)}>♡ Save</button>
                             </div>
                             {addTarget[mi] && (
@@ -185,9 +220,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
               <div className="message message-assistant">
                 <div className="msg-avatar">✦</div>
                 <div className="msg-body">
-                  <div className="typing">
-                    <span /><span /><span />
-                  </div>
+                  <div className="typing"><span /><span /><span /></div>
                 </div>
               </div>
             )}
@@ -196,9 +229,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
           <div className="chat-input-area">
             <div className="quick-prompts">
               {quickPrompts.map(q => (
-                <button key={q} className="quick-chip" onClick={() => { setInput(q); }}>
-                  {q}
-                </button>
+                <button key={q} className="quick-chip" onClick={() => setInput(q)}>{q}</button>
               ))}
             </div>
             <div className="input-row">
@@ -217,6 +248,18 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites 
           </div>
         </div>
       </div>
+
+      {selectedMeal && (
+        <RecipeModal
+          meal={selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          onFavorite={onFavorite}
+          onAddToWeek={onAddToWeek}
+          days={days}
+          week={week}
+          favorites={favorites}
+        />
+      )}
     </div>
   );
 }

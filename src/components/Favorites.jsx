@@ -1,8 +1,10 @@
 import { useState } from "react";
+import RecipeModal from "./RecipeModal";
 import "./Favorites.css";
 
 export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
   const [addTarget, setAddTarget] = useState(null);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   if (favorites.length === 0) {
     return (
@@ -21,12 +23,14 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
   return (
     <div>
       <h1 className="section-title">Saved Meals</h1>
-      <p className="section-sub">{favorites.length} saved · tap a meal to add it to your week</p>
+      <p className="section-sub">{favorites.length} saved · tap a meal to see the full recipe & variations</p>
       <div className="favs-grid">
         {favorites.map((meal, i) => (
           <div key={i} className="meal-card fav-card">
             <div className="fav-top">
-              <div className="meal-name">{meal.name}</div>
+              <div className="meal-name" onClick={() => setSelectedMeal(meal)} style={{ cursor: "pointer" }}>
+                {meal.name}
+              </div>
               <button className="fav-remove" onClick={() => onRemove(meal.name)} title="Remove">×</button>
             </div>
             <div className="meal-meta">
@@ -39,6 +43,14 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
               {meal.carbs && <span><strong>{meal.carbs}g</strong> carbs</span>}
               {meal.cookTime && <span>⏱ {meal.cookTime}</span>}
             </div>
+            {meal.variations?.length > 0 && (
+              <div className="fav-variations-preview">
+                <span className="fav-var-label">🔀 {meal.variations.length} variations</span>
+                {meal.variations.map((v, vi) => (
+                  <span key={vi} className="fav-var-chip">{v.label}</span>
+                ))}
+              </div>
+            )}
             {meal.ingredients?.length > 0 && (
               <div className="ingredients">
                 <div className="ingredients-label">Ingredients</div>
@@ -50,12 +62,9 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
               </div>
             )}
             <div className="meal-actions" style={{ marginTop: 14 }}>
-              <button className="btn btn-primary btn-sm" onClick={() => setAddTarget(addTarget === i ? null : i)}>
-                + Add to week
-              </button>
-              <button className="btn btn-ghost btn-sm" style={{ color: "var(--red)", borderColor: "var(--red)" }} onClick={() => onRemove(meal.name)}>
-                Remove
-              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setAddTarget(addTarget === i ? null : i)}>+ Add to week</button>
+              <button className="btn btn-ghost btn-sm" style={{ color: "var(--red)", borderColor: "var(--red)" }} onClick={() => onRemove(meal.name)}>Remove</button>
             </div>
             {addTarget === i && (
               <div className="day-picker-fav">
@@ -71,6 +80,18 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
           </div>
         ))}
       </div>
+
+      {selectedMeal && (
+        <RecipeModal
+          meal={selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          onFavorite={null}
+          onAddToWeek={onAddToWeek}
+          days={days}
+          week={{}}
+          favorites={favorites}
+        />
+      )}
     </div>
   );
 }

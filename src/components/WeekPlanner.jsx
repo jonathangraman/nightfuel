@@ -1,8 +1,11 @@
 import { useState } from "react";
+import RecipeModal from "./RecipeModal";
+import NutritionSummary from "./NutritionSummary";
 import "./WeekPlanner.css";
 
 export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onGoAI }) {
-  const [dayPicker, setDayPicker] = useState(null); // which day is open for fav picker
+  const [dayPicker, setDayPicker] = useState(null);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   const filled = days.filter(d => week[d]).length;
 
@@ -15,16 +18,12 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
         </div>
         <div className="planner-actions">
           {filled < days.length && (
-            <button className="btn btn-primary" onClick={onGoAI}>
-              ✦ Get AI Suggestions
-            </button>
+            <button className="btn btn-primary" onClick={onGoAI}>✦ Get AI Suggestions</button>
           )}
           {filled > 0 && (
             <button className="btn btn-ghost" onClick={() => {
               if (confirm("Clear this week's plan?")) days.forEach(d => onClear(d));
-            }}>
-              Clear week
-            </button>
+            }}>Clear week</button>
           )}
         </div>
       </div>
@@ -35,10 +34,11 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
           return (
             <div key={day} className={`day-slot ${meal ? "filled" : "empty-slot"}`}>
               <div className="day-label">{day}</div>
-
               {meal ? (
                 <div className="day-meal">
-                  <div className="meal-name">{meal.name}</div>
+                  <div className="meal-name" onClick={() => setSelectedMeal(meal)} style={{ cursor: "pointer" }}>
+                    {meal.name}
+                  </div>
                   <div className="meal-meta">
                     {meal.tags?.map(tag => (
                       <span key={tag} className={`tag tag-${tagColor(tag)}`}>{tag}</span>
@@ -51,6 +51,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                     {meal.carbs && <span className="macro"><strong>{meal.carbs}g</strong> carbs</span>}
                   </div>
                   <div className="meal-actions" style={{ marginTop: 12 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => onFavorite(meal)}>♡ Save</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => onClear(day)}>× Remove</button>
                   </div>
@@ -73,9 +74,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                         <button key={f.name} className="fav-pick-item" onClick={() => {
                           onAddMeal(f, day);
                           setDayPicker(null);
-                        }}>
-                          {f.name}
-                        </button>
+                        }}>{f.name}</button>
                       ))}
                     </div>
                   )}
@@ -86,21 +85,33 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
         })}
       </div>
 
+      <NutritionSummary week={week} days={days} />
+
       {filled === days.length && (
         <div className="week-complete">
           <span>🎉</span>
           <div>
             <strong>Full week planned!</strong>
-            <p>Your family dinners are all set. Check your grocery list below.</p>
+            <p>Your family dinners are all set.</p>
           </div>
           <button className="btn btn-primary" onClick={() => {
             const items = days.flatMap(d => week[d]?.ingredients || []);
             const unique = [...new Set(items)];
             alert("🛒 Grocery List:\n\n" + unique.map(i => `• ${i}`).join("\n"));
-          }}>
-            🛒 Grocery List
-          </button>
+          }}>🛒 Grocery List</button>
         </div>
+      )}
+
+      {selectedMeal && (
+        <RecipeModal
+          meal={selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          onFavorite={onFavorite}
+          onAddToWeek={onAddMeal}
+          days={days}
+          week={week}
+          favorites={favorites}
+        />
       )}
     </div>
   );
