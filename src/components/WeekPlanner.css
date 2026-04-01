@@ -146,3 +146,137 @@
 .week-complete > div { flex: 1; }
 .week-complete strong { color: var(--green); display: block; margin-bottom: 2px; }
 .week-complete p { color: var(--text-muted); font-size: 13px; }
+
+/* ── GENERATING SPINNER ── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(13,13,15,0.3);
+  border-top-color: #0d0d0f;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* ── ERROR ── */
+.planner-error {
+  background: rgba(232,84,84,0.08);
+  border: 1px solid rgba(232,84,84,0.25);
+  color: var(--red);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* ── GENERATED PREVIEW ── */
+.generated-preview {
+  background: var(--surface);
+  border: 1px solid rgba(232,197,71,0.3);
+  border-radius: 14px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(232,197,71,0.04);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.preview-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.preview-actions { display: flex; gap: 8px; }
+
+.preview-meals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0;
+}
+
+.preview-meal-card {
+  padding: 16px 18px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.preview-meal-card:hover { background: rgba(232,197,71,0.03); }
+.preview-meal-card:last-child { border-right: none; }
+
+.preview-day {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.preview-meal-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.preview-meal-meta {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.preview-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.preview-meal-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.preview-macros {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.preview-macros strong { color: var(--text); }
+
+.preview-meal-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}

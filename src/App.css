@@ -365,3 +365,106 @@ body {
 }
 
 .no-key-banner span:last-of-type { flex: 1; }
+
+/* ── SYNC INDICATOR ── */
+.sync-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.sync-indicator.synced  { color: var(--green); border-color: rgba(78,203,141,0.3); }
+.sync-indicator.syncing { color: var(--accent); border-color: rgba(232,197,71,0.3); }
+.sync-indicator.error   { color: var(--red); border-color: rgba(232,84,84,0.3); }
+
+/* ── SETTINGS MODAL ── */
+.settings-modal {
+  max-width: 560px !important;
+  padding: 0 !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.settings-header {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-section {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.settings-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-badge.green {
+  background: rgba(78,203,141,0.12);
+  color: var(--green);
+  border: 1px solid rgba(78,203,141,0.3);
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.settings-hint a { color: var(--accent); text-decoration: none; }
+.settings-hint a:hover { text-decoration: underline; }
+.settings-hint strong { color: var(--text); }
+
+.household-id {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.hid-code {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.schema-section { background: rgba(232,197,71,0.02); }
+
+.schema-pre {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-muted);
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.6;
+  margin: 0;
+}
