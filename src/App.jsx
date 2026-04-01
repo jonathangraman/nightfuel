@@ -227,6 +227,7 @@ export default function App() {
             unsplashKey={unsplashKey}
             notes={notes}
             onNote={setNote}
+            weekend={weekend}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}

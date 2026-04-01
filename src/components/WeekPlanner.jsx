@@ -65,6 +65,8 @@ RULES FOR VARIETY:
 - Mix up cooking methods
 - Avoid any meals listed in the recent history
 - When seasonal produce is mentioned, incorporate it into vegetable sides and ingredients
+- Consider fruit salads as sides: strawberry spinach, peach arugula, apple walnut spinach, mango avocado, citrus arugula — match to the season
+- Fruit-forward dressings like strawberry balsamic, apple cider vinaigrette, honey poppy seed, mango lime pair well with grilled proteins
 
 Always include 2 suggested sides per meal. Sides should be specific with brief prep instructions and calories.
 
@@ -102,7 +104,7 @@ async function callAI(apiKey, systemPrompt, userMessage) {
   return JSON.parse(cleaned);
 }
 
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote, weekend }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
@@ -421,7 +423,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
       {toast && <div className="planner-toast"><span>✓</span> {toast}</div>}
 
-      {showGrocery && <GroceryList week={week} days={days} onClose={() => setShowGrocery(false)} />}
+      {showGrocery && <GroceryList week={week} days={days} weekend={weekend} onClose={() => setShowGrocery(false)} />}
 
       {editingNote && (
         <div className="modal-overlay" onClick={() => setEditingNote(null)}>

@@ -2,7 +2,10 @@ import { useState } from "react";
 import { PROTEINS } from "../data/proteins";
 import { SAUCES, SAUCE_CUISINES } from "../data/sauces";
 import SauceModal from "./SauceModal";
+import SaladBuilder from "./SaladBuilder";
 import "./MealBuilder.css";
+
+const CURRENT_MONTH = new Date().getMonth() + 1;
 
 // Grouped for display
 export const SIDE_GROUPS = [
@@ -31,6 +34,21 @@ export const SIDE_GROUPS = [
     ],
   },
   {
+    label: "🍓 Fruit Salads",
+    sides: [
+      { id: "strawberry-spinach",  name: "Strawberry Spinach Salad", calories: 75,  protein: 2, carbs: 10, emoji: "🍓", season: [3,4,5,6] },
+      { id: "peach-arugula",       name: "Peach Arugula Salad",     calories: 80,  protein: 2, carbs: 12, emoji: "🍑", season: [7,8,9] },
+      { id: "watermelon-feta",     name: "Watermelon Feta Mint",    calories: 85,  protein: 3, carbs: 14, emoji: "🍉", season: [6,7,8] },
+      { id: "apple-walnut-spinach",name: "Apple Walnut Spinach",    calories: 110, protein: 3, carbs: 13, emoji: "🍎", season: [9,10,11,12] },
+      { id: "pear-gorgonzola",     name: "Pear Gorgonzola Arugula", calories: 120, protein: 4, carbs: 11, emoji: "🍐", season: [9,10,11] },
+      { id: "mango-avocado",       name: "Mango Avocado Salad",     calories: 130, protein: 2, carbs: 16, emoji: "🥭", season: [5,6,7,8] },
+      { id: "blood-orange-fennel", name: "Blood Orange Fennel",     calories: 70,  protein: 1, carbs: 12, emoji: "🍊", season: [1,2,3,12] },
+      { id: "pomegranate-spinach", name: "Pomegranate Spinach",     calories: 80,  protein: 3, carbs: 13, emoji: "🫐", season: [10,11,12,1] },
+      { id: "citrus-arugula",      name: "Citrus Arugula",          calories: 60,  protein: 2, carbs: 8,  emoji: "🍋", season: [1,2,3,4] },
+      { id: "grape-goat-cheese",   name: "Roasted Grape Goat Cheese",calories: 115, protein: 4, carbs: 12, emoji: "🍇", season: [8,9,10] },
+    ],
+  },
+  {
     label: "🍠 Starches",
     sides: [
       { id: "sweet-potato",        name: "Sweet Potato",            calories: 103, protein: 2, carbs: 24, emoji: "🍠" },
@@ -47,9 +65,30 @@ export const SIDE_GROUPS = [
       { id: "brown-rice",          name: "Brown Rice (½ cup)",      calories: 110, protein: 3, carbs: 23, emoji: "🍚" },
       { id: "white-rice",          name: "Jasmine Rice (½ cup)",    calories: 100, protein: 2, carbs: 22, emoji: "🍚" },
       { id: "couscous",            name: "Couscous (½ cup)",        calories: 90,  protein: 3, carbs: 18, emoji: "🌾" },
-      { id: "barley",              name: "Pearl Barley (½ cup)",    calories: 95,  protein: 3, carbs: 22, emoji: "🌾" },
-      { id: "bulgur",              name: "Bulgur Wheat (½ cup)",    calories: 75,  protein: 3, carbs: 17, emoji: "🌾" },
       { id: "wild-rice",           name: "Wild Rice Blend (½ cup)", calories: 85,  protein: 3, carbs: 18, emoji: "🍚" },
+    ],
+  },
+  {
+    label: "🧀 Toppings",
+    sides: [
+      { id: "feta-crumbles",      name: "Feta Crumbles",         calories: 50,  protein: 3, carbs: 1,  emoji: "🧀" },
+      { id: "parmesan",           name: "Shaved Parmesan",       calories: 40,  protein: 4, carbs: 0,  emoji: "🧀" },
+      { id: "goat-cheese",        name: "Goat Cheese",           calories: 55,  protein: 3, carbs: 0,  emoji: "🧀" },
+      { id: "blue-cheese",        name: "Blue Cheese Crumbles",  calories: 60,  protein: 4, carbs: 0,  emoji: "🧀" },
+      { id: "toasted-almonds",    name: "Toasted Almonds",       calories: 55,  protein: 2, carbs: 2,  emoji: "🌰" },
+      { id: "toasted-pine-nuts",  name: "Pine Nuts",             calories: 60,  protein: 1, carbs: 1,  emoji: "🌰" },
+      { id: "candied-walnuts",    name: "Candied Walnuts",       calories: 70,  protein: 1, carbs: 5,  emoji: "🌰" },
+      { id: "sliced-strawberries",name: "Sliced Strawberries",   calories: 20,  protein: 0, carbs: 5,  emoji: "🍓" },
+      { id: "dried-cranberries",  name: "Dried Cranberries",     calories: 40,  protein: 0, carbs: 10, emoji: "🫐" },
+      { id: "sliced-apple",       name: "Sliced Apple",          calories: 30,  protein: 0, carbs: 8,  emoji: "🍎" },
+      { id: "mango-salsa",        name: "Mango Salsa",           calories: 35,  protein: 0, carbs: 9,  emoji: "🥭" },
+      { id: "avocado-slices",     name: "Avocado Slices",        calories: 80,  protein: 1, carbs: 4,  emoji: "🥑" },
+      { id: "crispy-onions",      name: "Crispy Onions",         calories: 45,  protein: 1, carbs: 5,  emoji: "🧅" },
+      { id: "everything-bagel",   name: "Everything Bagel Spice",calories: 10,  protein: 0, carbs: 1,  emoji: "✨" },
+      { id: "fresh-herbs",        name: "Fresh Herbs",           calories: 5,   protein: 0, carbs: 1,  emoji: "🌿" },
+      { id: "lemon-zest",         name: "Lemon Zest & Juice",    calories: 5,   protein: 0, carbs: 1,  emoji: "🍋" },
+      { id: "sesame-seeds",       name: "Sesame Seeds",          calories: 20,  protein: 1, carbs: 1,  emoji: "⚪" },
+      { id: "pomegranate",        name: "Pomegranate Seeds",     calories: 25,  protein: 0, carbs: 6,  emoji: "💎" },
     ],
   },
   {
@@ -63,11 +102,12 @@ export const SIDE_GROUPS = [
 const SIDES = SIDE_GROUPS.flatMap(g => g.sides);
 
 export default function MealBuilder({ days, week, onAddToWeek }) {
-  const [view, setView] = useState("builder"); // "builder" | "sauces"
+  const [view, setView] = useState("builder"); // "builder" | "salad" | "sauces"
   const [cuisineFilter, setCuisineFilter] = useState("All");
   const [selectedSauce, setSelectedSauce] = useState(null); // for modal
   const [builder, setBuilder] = useState({ protein: null, sauce: null, side: null });
   const [addDay, setAddDay] = useState(null);
+  const [addedToDay, setAddedToDay] = useState(null);
 
   const unplannedDays = days.filter(d => !week[d]);
 
@@ -81,21 +121,29 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
   const isComplete = builder.protein && builder.sauce;
 
   const logMeal = (day) => {
+    // Build a complete ingredients list from protein + sauce + side
+    const proteinIngredient = `${builder.protein.name.toLowerCase()} (${builder.protein.servingSize})`;
+    const sauceIngredients  = builder.sauce.ingredients || [];
+    const sideIngredient    = builder.side && builder.side.id !== "none" ? [builder.side.name.toLowerCase()] : [];
+
     const meal = {
       name: `${builder.protein.name} with ${builder.sauce.name}${builder.side && builder.side.id !== "none" ? ` & ${builder.side.name}` : ""}`,
       description: `${builder.protein.cookMethods[0]} ${builder.protein.name.toLowerCase()} with ${builder.sauce.name.toLowerCase()} sauce${builder.side && builder.side.id !== "none" ? `, served with ${builder.side.name.toLowerCase()}` : ""}.`,
-      tags: ["Custom", "High Protein", builder.sauce.tags?.[0]].filter(Boolean),
+      tags: ["Custom", "High Protein", builder.sauce.cuisine].filter(Boolean),
       calories: totals.calories,
       protein: totals.protein,
       carbs: totals.carbs,
       cookTime: "30 min",
-      ingredients: [...(builder.sauce.ingredients || [])],
+      ingredients: [proteinIngredient, ...sauceIngredients, ...sideIngredient],
       steps: builder.sauce.steps || [],
       variations: builder.sauce.variations || [],
       _custom: true,
     };
     onAddToWeek(meal, day);
     setAddDay(null);
+    setBuilder({ protein: null, sauce: null, side: null });
+    setAddedToDay(day);
+    setTimeout(() => setAddedToDay(null), 3000);
   };
 
   const filteredSauces = cuisineFilter === "All"
@@ -108,6 +156,9 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
       <div className="mb-tabs">
         <button className={`mb-tab ${view === "builder" ? "active" : ""}`} onClick={() => setView("builder")}>
           🍽 Meal Builder
+        </button>
+        <button className={`mb-tab ${view === "salad" ? "active" : ""}`} onClick={() => setView("salad")}>
+          🥗 Salad Builder
         </button>
         <button className={`mb-tab ${view === "sauces" ? "active" : ""}`} onClick={() => setView("sauces")}>
           🫙 Sauce Library
@@ -194,7 +245,7 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
                 <span className="step-num-badge">3</span>
                 <div>
                   <div className="step-title">Add a Side <span className="optional-badge">optional</span></div>
-                  <div className="step-sub">Vegetables, starches, and grains to round out the meal</div>
+                  <div className="step-sub">Vegetables, starches, grains, and toppings to finish the dish</div>
                 </div>
               </div>
               {SIDE_GROUPS.map(group => (
@@ -204,9 +255,10 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
                     {group.sides.map(s => (
                       <button
                         key={s.id}
-                        className={`side-card ${builder.side?.id === s.id ? "selected" : ""}`}
+                        className={`side-card ${builder.side?.id === s.id ? "selected" : ""} ${s.season?.includes(CURRENT_MONTH) ? "in-season" : ""}`}
                         onClick={() => setBuilder(b => ({ ...b, side: builder.side?.id === s.id ? null : s }))}
                       >
+                        {s.season?.includes(CURRENT_MONTH) && <span className="season-badge">In season</span>}
                         <span className="side-emoji">{s.emoji}</span>
                         <div className="side-name">{s.name}</div>
                         {s.id !== "none" && <div className="side-cal">{s.calories} cal</div>}
@@ -299,32 +351,49 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
 
               {isComplete && (
                 <div className="summary-actions">
-                  {addDay === "picking" ? (
+                  {addedToDay ? (
+                    <div className="added-success">
+                      <span>✓</span> Added to {addedToDay}!
+                      <p className="added-hint">Check the Week tab — ingredients are in your grocery list.</p>
+                    </div>
+                  ) : addDay === "picking" ? (
                     <div className="day-pick-area">
                       <div className="day-pick-label">Add to which day?</div>
-                      {unplannedDays.length === 0
-                        ? <p style={{ fontSize: 13, color: "var(--text-muted)" }}>All days are planned!</p>
-                        : <div className="day-pick-chips">
-                            {unplannedDays.map(d => (
-                              <button key={d} className="day-chip-builder" onClick={() => logMeal(d)}>{d}</button>
-                            ))}
-                          </div>
-                      }
+                      <div className="day-pick-chips">
+                        {days.map(d => (
+                          <button
+                            key={d}
+                            className={`day-chip-builder ${week[d] ? "day-chip-replace" : ""}`}
+                            onClick={() => logMeal(d)}
+                            title={week[d] ? `Replace ${week[d].name}` : `Add to ${d}`}
+                          >
+                            {d}
+                            {week[d] && <span className="replace-indicator"> ↺</span>}
+                          </button>
+                        ))}
+                      </div>
                       <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => setAddDay(null)}>Cancel</button>
                     </div>
                   ) : (
                     <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => setAddDay("picking")}>
-                      + Log this meal
+                      + Add to week
                     </button>
                   )}
-                  <button className="btn btn-ghost btn-sm" style={{ width: "100%", marginTop: 8 }} onClick={() => setBuilder({ protein: null, sauce: null, side: null })}>
-                    Reset
-                  </button>
+                  {!addedToDay && (
+                    <button className="btn btn-ghost btn-sm" style={{ width: "100%", marginTop: 8 }} onClick={() => setBuilder({ protein: null, sauce: null, side: null })}>
+                      Reset
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── SALAD BUILDER ──────────────────────────────── */}
+      {view === "salad" && (
+        <SaladBuilder days={days} week={week} onAddToWeek={onAddToWeek} />
       )}
 
       {/* ── SAUCE LIBRARY ───────────────────────────────── */}

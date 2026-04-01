@@ -16,8 +16,12 @@ function categorize(ingredient) {
   return "pantry";
 }
 
-function parseIngredients(week, days) {
-  const raw = days.flatMap(d => week[d]?.ingredients || []);
+function parseIngredients(week, days, weekend) {
+  const weekendDays = ["Saturday", "Sunday"];
+  const raw = [
+    ...days.flatMap(d => week[d]?.ingredients || []),
+    ...weekendDays.flatMap(d => weekend?.[d]?.ingredients || []),
+  ];
   const seen = new Set();
   const unique = raw.filter(i => {
     const key = i.toLowerCase().trim();
@@ -33,8 +37,8 @@ function parseIngredients(week, days) {
   return grouped;
 }
 
-export default function GroceryList({ week, days, onClose }) {
-  const [items, setItems] = useState(() => parseIngredients(week, days));
+export default function GroceryList({ week, days, weekend, onClose }) {
+  const [items, setItems] = useState(() => parseIngredients(week, days, weekend));
   const [extras, setExtras] = useState([]);
   const [newItem, setNewItem] = useState("");
   const [haveIt, setHaveIt] = useState(new Set()); // items already in pantry

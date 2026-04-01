@@ -332,3 +332,62 @@
   padding-bottom: 5px;
   border-bottom: 1px solid var(--border);
 }
+
+/* ── ADDED SUCCESS ── */
+.added-success {
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.added-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ── DAY CHIP WITH REPLACE INDICATOR ── */
+.day-chip-replace {
+  opacity: 0.75;
+  border-style: dashed !important;
+}
+
+.replace-indicator {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ── SEASONAL BADGE ── */
+.side-card.in-season {
+  border-color: rgba(45,106,79,0.4);
+  background: rgba(45,106,79,0.03);
+}
+
+.side-card.in-season.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.season-badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 0 8px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
+.side-card { position: relative; }
