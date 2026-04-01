@@ -316,3 +316,76 @@
 /* ── DAY SUGGESTION SIDES ── */
 .ds-sides { display: flex; gap: 4px; flex-wrap: wrap; }
 .ds-side-chip { font-size: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; color: var(--text-muted); }
+
+/* ── CUISINE BALANCE ── */
+.cuisine-balance {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.cuisine-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* ── MEAL NOTES ── */
+.meal-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 7px;
+  padding: 5px 9px;
+  margin-top: 6px;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.1s;
+}
+
+.meal-note:hover { background: #fef08a; }
+
+.add-note-btn {
+  font-size: 11px;
+  color: var(--text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-top: 4px;
+  text-align: left;
+  transition: color 0.1s;
+}
+
+.add-note-btn:hover { color: var(--text-muted); }
+
+/* ── NOTE MODAL ── */
+.note-modal {
+  max-width: 420px !important;
+  padding: 0 !important;
+}
+
+.note-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+
+.note-textarea:focus { border-color: var(--accent); }
+.note-textarea::placeholder { color: var(--text-light); }

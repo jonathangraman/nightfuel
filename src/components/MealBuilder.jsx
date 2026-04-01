@@ -4,18 +4,63 @@ import { SAUCES, SAUCE_CUISINES } from "../data/sauces";
 import SauceModal from "./SauceModal";
 import "./MealBuilder.css";
 
-const SIDES = [
-  { id: "roasted-broccoli",   name: "Roasted Broccoli",      calories: 55,  protein: 4,  carbs: 10, emoji: "🥦" },
-  { id: "roasted-asparagus",  name: "Roasted Asparagus",     calories: 40,  protein: 4,  carbs: 7,  emoji: "🌿" },
-  { id: "zucchini",           name: "Sautéed Zucchini",      calories: 35,  protein: 2,  carbs: 6,  emoji: "🥒" },
-  { id: "green-beans",        name: "Green Beans",           calories: 44,  protein: 2,  carbs: 10, emoji: "🫘" },
-  { id: "cauliflower",        name: "Roasted Cauliflower",   calories: 50,  protein: 4,  carbs: 10, emoji: "🤍" },
-  { id: "spinach",            name: "Sautéed Spinach",       calories: 25,  protein: 3,  carbs: 3,  emoji: "🌿" },
-  { id: "mixed-salad",        name: "Side Salad",            calories: 30,  protein: 2,  carbs: 5,  emoji: "🥗" },
-  { id: "sweet-potato",       name: "Sweet Potato",          calories: 103, protein: 2,  carbs: 24, emoji: "🍠" },
-  { id: "brown-rice",         name: "Brown Rice (½ cup)",    calories: 110, protein: 3,  carbs: 23, emoji: "🍚" },
-  { id: "none",               name: "No side",               calories: 0,   protein: 0,  carbs: 0,  emoji: "✕"  },
+// Grouped for display
+export const SIDE_GROUPS = [
+  {
+    label: "🥦 Vegetables",
+    sides: [
+      { id: "roasted-broccoli",    name: "Roasted Broccoli",        calories: 55,  protein: 4, carbs: 10, emoji: "🥦" },
+      { id: "roasted-asparagus",   name: "Roasted Asparagus",       calories: 40,  protein: 4, carbs: 7,  emoji: "🌿" },
+      { id: "sauteed-zucchini",    name: "Sautéed Zucchini",        calories: 35,  protein: 2, carbs: 6,  emoji: "🥒" },
+      { id: "green-beans",         name: "Garlic Green Beans",       calories: 44,  protein: 2, carbs: 10, emoji: "🫘" },
+      { id: "roasted-cauliflower", name: "Roasted Cauliflower",     calories: 50,  protein: 4, carbs: 10, emoji: "🤍" },
+      { id: "sauteed-spinach",     name: "Sautéed Spinach",         calories: 25,  protein: 3, carbs: 3,  emoji: "🌿" },
+      { id: "roasted-brussels",    name: "Brussels Sprouts",        calories: 60,  protein: 4, carbs: 12, emoji: "🟢" },
+      { id: "roasted-carrots",     name: "Roasted Carrots",         calories: 50,  protein: 1, carbs: 12, emoji: "🥕" },
+      { id: "roasted-bell-pepper", name: "Roasted Bell Peppers",    calories: 40,  protein: 1, carbs: 9,  emoji: "🫑" },
+      { id: "sauteed-mushrooms",   name: "Sautéed Mushrooms",       calories: 30,  protein: 3, carbs: 4,  emoji: "🍄" },
+      { id: "wilted-kale",         name: "Wilted Kale",             calories: 35,  protein: 3, carbs: 5,  emoji: "🌿" },
+      { id: "snap-peas",           name: "Snap Peas",               calories: 35,  protein: 2, carbs: 7,  emoji: "🫛" },
+      { id: "roasted-sweet-corn",  name: "Roasted Corn",            calories: 80,  protein: 3, carbs: 17, emoji: "🌽" },
+      { id: "cucumber-salad",      name: "Cucumber Salad",          calories: 25,  protein: 1, carbs: 5,  emoji: "🥒" },
+      { id: "tomato-salad",        name: "Tomato Salad",            calories: 30,  protein: 1, carbs: 6,  emoji: "🍅" },
+      { id: "greek-salad",         name: "Greek Salad",             calories: 80,  protein: 3, carbs: 8,  emoji: "🥗" },
+      { id: "caprese",             name: "Caprese Salad",           calories: 90,  protein: 6, carbs: 4,  emoji: "🍅" },
+      { id: "coleslaw",            name: "Light Coleslaw",          calories: 55,  protein: 1, carbs: 9,  emoji: "🥬" },
+      { id: "mixed-salad",         name: "Side Salad",              calories: 30,  protein: 2, carbs: 5,  emoji: "🥗" },
+    ],
+  },
+  {
+    label: "🍠 Starches",
+    sides: [
+      { id: "sweet-potato",        name: "Sweet Potato",            calories: 103, protein: 2, carbs: 24, emoji: "🍠" },
+      { id: "roasted-potato",      name: "Roasted Potatoes",        calories: 130, protein: 3, carbs: 28, emoji: "🥔" },
+      { id: "mashed-potato",       name: "Mashed Potatoes",         calories: 150, protein: 3, carbs: 30, emoji: "🥔" },
+      { id: "polenta",             name: "Polenta (½ cup)",         calories: 110, protein: 2, carbs: 23, emoji: "🌽" },
+      { id: "pasta",               name: "Pasta (½ cup)",           calories: 110, protein: 4, carbs: 22, emoji: "🍝" },
+      { id: "mashed-cauliflower",  name: "Mashed Cauliflower",      calories: 60,  protein: 4, carbs: 11, emoji: "🤍" },
+    ],
+  },
+  {
+    label: "🍚 Grains",
+    sides: [
+      { id: "brown-rice",          name: "Brown Rice (½ cup)",      calories: 110, protein: 3, carbs: 23, emoji: "🍚" },
+      { id: "white-rice",          name: "Jasmine Rice (½ cup)",    calories: 100, protein: 2, carbs: 22, emoji: "🍚" },
+      { id: "couscous",            name: "Couscous (½ cup)",        calories: 90,  protein: 3, carbs: 18, emoji: "🌾" },
+      { id: "barley",              name: "Pearl Barley (½ cup)",    calories: 95,  protein: 3, carbs: 22, emoji: "🌾" },
+      { id: "bulgur",              name: "Bulgur Wheat (½ cup)",    calories: 75,  protein: 3, carbs: 17, emoji: "🌾" },
+      { id: "wild-rice",           name: "Wild Rice Blend (½ cup)", calories: 85,  protein: 3, carbs: 18, emoji: "🍚" },
+    ],
+  },
+  {
+    label: "✕ No side",
+    sides: [
+      { id: "none", name: "No side", calories: 0, protein: 0, carbs: 0, emoji: "✕" },
+    ],
+  },
 ];
+
+const SIDES = SIDE_GROUPS.flatMap(g => g.sides);
 
 export default function MealBuilder({ days, week, onAddToWeek }) {
   const [view, setView] = useState("builder"); // "builder" | "sauces"
@@ -149,22 +194,27 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
                 <span className="step-num-badge">3</span>
                 <div>
                   <div className="step-title">Add a Side <span className="optional-badge">optional</span></div>
-                  <div className="step-sub">Vegetables and light sides to round out the meal</div>
+                  <div className="step-sub">Vegetables, starches, and grains to round out the meal</div>
                 </div>
               </div>
-              <div className="sides-grid">
-                {SIDES.map(s => (
-                  <button
-                    key={s.id}
-                    className={`side-card ${builder.side?.id === s.id ? "selected" : ""}`}
-                    onClick={() => setBuilder(b => ({ ...b, side: builder.side?.id === s.id ? null : s }))}
-                  >
-                    <span className="side-emoji">{s.emoji}</span>
-                    <div className="side-name">{s.name}</div>
-                    {s.id !== "none" && <div className="side-cal">{s.calories} cal</div>}
-                  </button>
-                ))}
-              </div>
+              {SIDE_GROUPS.map(group => (
+                <div key={group.label} className="side-group">
+                  <div className="side-group-label">{group.label}</div>
+                  <div className="sides-grid">
+                    {group.sides.map(s => (
+                      <button
+                        key={s.id}
+                        className={`side-card ${builder.side?.id === s.id ? "selected" : ""}`}
+                        onClick={() => setBuilder(b => ({ ...b, side: builder.side?.id === s.id ? null : s }))}
+                      >
+                        <span className="side-emoji">{s.emoji}</span>
+                        <div className="side-name">{s.name}</div>
+                        {s.id !== "none" && <div className="side-cal">{s.calories} cal</div>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

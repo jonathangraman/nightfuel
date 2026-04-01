@@ -15,7 +15,7 @@ const COOK_TIME_OPTIONS = [
 
 const FAMILY_CONTEXT = `
 FAMILY PREFERENCES:
-- Proteins they regularly buy: lean ground beef (90/10), ground chicken, chicken breast, skinless chicken thighs, salmon fillets, pork loin, pork chops, flank steak, shrimp
+- Proteins they regularly buy: lean ground beef (90/10), ground turkey (93/7), ground chicken, chicken breast, skinless chicken thighs, chicken sausage, salmon fillets, tuna steaks, pork loin, pork chops, flank steak, shrimp
 - They like most vegetables
 - Cuisine styles they enjoy: American, Greek, Italian, Mexican, Asian
 - They do NOT like casseroles
@@ -102,7 +102,7 @@ async function callAI(apiKey, systemPrompt, userMessage) {
   return JSON.parse(cleaned);
 }
 
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
@@ -111,11 +111,22 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
   const [error, setError]                 = useState(null);
   const [toast, setToast]                 = useState(null);
   const [showGrocery, setShowGrocery]     = useState(false);
-  const [cookTimeFilter, setCookTimeFilter] = useState(null); // null = any
+  const [cookTimeFilter, setCookTimeFilter] = useState(null);
+  const [editingNote, setEditingNote] = useState(null);
+  const [noteText, setNoteText] = useState("");
 
   const filled    = days.filter(d => week[d]).length;
   const emptyDays = days.filter(d => !week[d]);
   const season    = getCurrentSeason();
+
+  // Cuisine balance from meal tags
+  const cuisineBalance = days.reduce((acc, d) => {
+    const meal = week[d];
+    if (!meal) return acc;
+    const cuisineTag = meal.tags?.find(t => ["Asian", "Greek", "Italian", "Mexican", "American", "French"].includes(t));
+    if (cuisineTag) acc[cuisineTag] = (acc[cuisineTag] || 0) + 1;
+    return acc;
+  }, {});
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
 
@@ -209,6 +220,13 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
         <div>
           <h1 className="section-title">This Week's Dinners</h1>
           <p className="section-sub">{filled} of {days.length} nights planned · {season.month}</p>
+          {Object.keys(cuisineBalance).length > 0 && (
+            <div className="cuisine-balance">
+              {Object.entries(cuisineBalance).map(([cuisine, count]) => (
+                <span key={cuisine} className="cuisine-pill">{cuisine} {count > 1 ? `×${count}` : ""}</span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="planner-actions">
           {/* Cook time filter */}
@@ -313,6 +331,13 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                   <div className="day-rating">
                     <StarRating value={mealRating} onChange={(r) => onRate?.(meal.name, r)} size="sm" />
                   </div>
+                  {notes?.[day] ? (
+                    <div className="meal-note" onClick={() => { setEditingNote(day); setNoteText(notes[day]); }}>
+                      📝 {notes[day]}
+                    </div>
+                  ) : (
+                    <button className="add-note-btn" onClick={() => { setEditingNote(day); setNoteText(""); }}>+ Add note</button>
+                  )}
                   <div className="meal-actions" style={{ marginTop: 8 }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => onFavorite(meal)}>♡ Save</button>
@@ -397,6 +422,31 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
       {toast && <div className="planner-toast"><span>✓</span> {toast}</div>}
 
       {showGrocery && <GroceryList week={week} days={days} onClose={() => setShowGrocery(false)} />}
+
+      {editingNote && (
+        <div className="modal-overlay" onClick={() => setEditingNote(null)}>
+          <div className="modal note-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setEditingNote(null)}>×</button>
+            <div style={{ padding: "24px 28px" }}>
+              <h3 className="modal-title" style={{ fontSize: 20, marginBottom: 16 }}>📝 Note for {editingNote}</h3>
+              <textarea
+                className="note-textarea"
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="e.g. kids loved this, add more garlic next time, too spicy…"
+                rows={4}
+                autoFocus
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button className="btn btn-primary" onClick={() => { onNote?.(editingNote, noteText); setEditingNote(null); }}>Save note</button>
+                {notes?.[editingNote] && (
+                  <button className="btn btn-ghost" style={{ color: "var(--red)" }} onClick={() => { onNote?.(editingNote, ""); setEditingNote(null); }}>Delete</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedMeal && (
         <RecipeModal

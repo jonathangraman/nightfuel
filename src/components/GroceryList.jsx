@@ -37,6 +37,13 @@ export default function GroceryList({ week, days, onClose }) {
   const [items, setItems] = useState(() => parseIngredients(week, days));
   const [extras, setExtras] = useState([]);
   const [newItem, setNewItem] = useState("");
+  const [haveIt, setHaveIt] = useState(new Set()); // items already in pantry
+
+  const toggleHaveIt = (name) => setHaveIt(prev => {
+    const next = new Set(prev);
+    next.has(name) ? next.delete(name) : next.add(name);
+    return next;
+  });
 
   const totalItems  = Object.values(items).flat().length + extras.length;
   const checkedCount = [...Object.values(items).flat(), ...extras].filter(i => i.checked).length;
@@ -102,7 +109,7 @@ export default function GroceryList({ week, days, onClose }) {
               <div key={key} className="grocery-section">
                 <div className="grocery-section-title">{section.label}</div>
                 {sectionItems.map((item, idx) => (
-                  <label key={idx} className={`grocery-item ${item.checked ? "checked" : ""}`}>
+                  <div key={idx} className={`grocery-item ${item.checked ? "checked" : ""} ${haveIt.has(item.name) ? "have-it" : ""}`}>
                     <input
                       type="checkbox"
                       checked={item.checked}
@@ -110,7 +117,12 @@ export default function GroceryList({ week, days, onClose }) {
                       className="grocery-checkbox"
                     />
                     <span className="grocery-item-name">{item.name}</span>
-                  </label>
+                    <button
+                      className={`have-it-btn ${haveIt.has(item.name) ? "active" : ""}`}
+                      onClick={() => toggleHaveIt(item.name)}
+                      title={haveIt.has(item.name) ? "Remove from pantry" : "Already have this"}
+                    >{haveIt.has(item.name) ? "✓ Have it" : "Have it"}</button>
+                  </div>
                 ))}
               </div>
             );

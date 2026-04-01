@@ -1,0 +1,97 @@
+.weekend-planner {}
+
+.weekend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.weekend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) { .weekend-grid { grid-template-columns: 1fr; } }
+
+.weekend-slot {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s;
+}
+
+.weekend-slot.filled { background: var(--surface); }
+.weekend-slot.filled:hover { border-color: var(--accent2); box-shadow: var(--shadow); }
+.weekend-slot.empty-slot { background: var(--surface); border-style: dashed; border-color: var(--border-strong); }
+
+.cook-time-badge {
+  font-size: 11px;
+  color: var(--accent2);
+  background: var(--accent2-light);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* NOTE */
+.meal-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 7px;
+  padding: 6px 10px;
+  margin-top: 8px;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.1s;
+}
+
+.meal-note:hover { background: #fef08a; }
+
+.add-note-btn {
+  font-size: 11px;
+  color: var(--text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-top: 4px;
+  text-align: left;
+  transition: color 0.1s;
+}
+
+.add-note-btn:hover { color: var(--text-muted); }
+
+/* NOTE MODAL */
+.note-modal {
+  max-width: 420px !important;
+  padding: 0 !important;
+}
+
+.note-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+
+.note-textarea:focus { border-color: var(--accent); }
+.note-textarea::placeholder { color: var(--text-light); }

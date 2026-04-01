@@ -3,10 +3,13 @@ import WeekPlanner from "./components/WeekPlanner";
 import AIChat from "./components/AIChat";
 import Favorites from "./components/Favorites";
 import MealBuilder from "./components/MealBuilder";
+import WeekendPlanner from "./components/WeekendPlanner";
 import { syncSave, syncLoad, isSupabaseConfigured, resetSupabaseClient, getHouseholdId } from "./lib/supabase";
 import "./App.css";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const WEEKEND_DAYS = ["Saturday", "Sunday"];
+const defaultWeekend = () => WEEKEND_DAYS.reduce((acc, d) => ({ ...acc, [d]: null }), {});
 const defaultWeek = () => DAYS.reduce((acc, d) => ({ ...acc, [d]: null }), {});
 const MAX_HISTORY = 30;
 
@@ -26,6 +29,18 @@ export default function App() {
   });
   const [ratings, setRatings] = useState(() => {
     try { return JSON.parse(localStorage.getItem("dinnerRatings")) || {}; }
+    catch { return {}; }
+  });
+  const [weekend, setWeekend] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("dinnerWeekend")) || defaultWeekend(); }
+    catch { return defaultWeekend(); }
+  });
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("dinnerNotes")) || {}; }
+    catch { return {}; }
+  });
+  const [weekendNotes, setWeekendNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("dinnerWeekendNotes")) || {}; }
     catch { return {}; }
   });
 
@@ -114,6 +129,10 @@ export default function App() {
 
   const addFavorite    = (meal) => setFavorites(f => f.find(m => m.name === meal.name) ? f : [meal, ...f]);
   const rateMeal       = (name, stars) => setRatings(r => ({ ...r, [name]: stars }));
+  const addToWeekend   = (meal, day) => setWeekend(w => ({ ...w, [day]: meal }));
+  const clearWeekend   = (day) => setWeekend(w => ({ ...w, [day]: null }));
+  const setNote        = (day, text) => setNotes(n => ({ ...n, [day]: text }));
+  const setWeekendNote = (day, text) => setWeekendNotes(n => ({ ...n, [day]: text }));
   const removeFavorite = (name) => setFavorites(f => f.filter(m => m.name !== name));
 
   // ── SETTINGS SAVE ───────────────────────────────────
@@ -155,6 +174,7 @@ export default function App() {
     { id: "builder",   label: "Meal Builder" },
     { id: "ai",        label: "AI Chef" },
     { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
+    { id: "weekend",   label: "Weekend" },
   ];
 
   const syncIndicator = sbConfigured
@@ -205,11 +225,29 @@ export default function App() {
             ratings={ratings}
             onRate={rateMeal}
             unsplashKey={unsplashKey}
+            notes={notes}
+            onNote={setNote}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}
         {tab === "ai"        && <AIChat days={DAYS} week={week} onAddToWeek={addToWeek} onFavorite={addFavorite} favorites={favorites} apiKey={apiKey} onNeedKey={openSettings} unsplashKey={unsplashKey} />}
         {tab === "favorites" && <Favorites favorites={favorites} days={DAYS} onRemove={removeFavorite} onAddToWeek={addToWeek} />}
+        {tab === "weekend" && (
+          <WeekendPlanner
+            weekend={weekend}
+            onAddMeal={addToWeekend}
+            onFavorite={addFavorite}
+            onClear={clearWeekend}
+            apiKey={apiKey}
+            onNeedKey={openSettings}
+            mealHistory={mealHistory}
+            ratings={ratings}
+            onRate={rateMeal}
+            unsplashKey={unsplashKey}
+            notes={weekendNotes}
+            onNote={setWeekendNote}
+          />
+        )}
       </main>
 
       {/* ── SETTINGS MODAL ── */}
