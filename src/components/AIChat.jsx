@@ -116,6 +116,10 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
       });
 
       const data = await res.json();
+      if (!res.ok || data.error) {
+        const msg = data.error?.message || `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
       const raw = data.content?.[0]?.text || "";
 
       let parsed = null;
@@ -144,7 +148,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
       setMessages(prev => [...prev, {
         role: "assistant",
         type: "text",
-        content: "Sorry, something went wrong. Try again in a moment!",
+        content: `Error: ${err.message || "Something went wrong. Check your API key."}`,
       }]);
     }
 

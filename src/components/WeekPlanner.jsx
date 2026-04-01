@@ -98,6 +98,11 @@ async function callAI(apiKey, systemPrompt, userMessage) {
     }),
   });
   const data = await res.json();
+  // Surface any API errors clearly
+  if (!res.ok || data.error) {
+    const msg = data.error?.message || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
   const raw = data.content?.[0]?.text || "";
   const cleaned = raw.replace(/```json|```/g, "").trim();
   return JSON.parse(cleaned);
@@ -154,8 +159,8 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
       } else {
         setError("Couldn't parse suggestions. Try again.");
       }
-    } catch {
-      setError("Something went wrong. Check your API key and try again.");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Check your API key and try again.");
     }
     setGenerating(false);
   };
@@ -188,8 +193,8 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
       } else {
         showToast("Couldn't get a suggestion. Try again.");
       }
-    } catch {
-      showToast("Something went wrong. Check your API key.");
+    } catch (err) {
+      showToast(err.message || "Something went wrong. Check your API key.");
     }
     setGeneratingDay(null);
   };
