@@ -2,7 +2,7 @@ import { useState } from "react";
 import StarRating from "./StarRating";
 import "./RecipeModal.css";
 
-export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, days, week, favorites, rating, onRate, apiKey }) {
+export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, days, week, favorites, rating, onRate, unsplashKey }) {
   const [activeVariation, setActiveVariation] = useState(null);
   const [photo, setPhoto]       = useState(meal._photo || null);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -14,31 +14,26 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
   const unplannedDays = days?.filter(d => !week?.[d]) || [];
 
   const generatePhoto = async () => {
-    if (!apiKey) return;
+    if (!unsplashKey) { setPhotoError("Add your Unsplash key in Settings."); return; }
     setPhotoLoading(true);
     setPhotoError(null);
     try {
-      // Use fal.ai fast-sdxl for food photography
-      const res = await fetch("https://fal.run/fal-ai/fast-sdxl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Key ${apiKey}` },
-        body: JSON.stringify({
-          prompt: `Professional food photography of ${meal.name}, top-down view, natural light, clean white plate, garnished, appetizing, high resolution`,
-          negative_prompt: "text, watermark, cartoon, illustration",
-          num_inference_steps: 25,
-          image_size: "square",
-        }),
-      });
+      // Build a clean search query from the meal name
+      const query = encodeURIComponent(`${meal.name} food dish`);
+      const res = await fetch(
+        `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape&content_filter=high`,
+        { headers: { Authorization: `Client-ID ${unsplashKey}` } }
+      );
       const data = await res.json();
-      const url = data.images?.[0]?.url;
+      const url = data.results?.[0]?.urls?.regular;
       if (url) {
         setPhoto(url);
-        meal._photo = url; // cache on meal object
+        meal._photo = url;
       } else {
-        setPhotoError("Couldn't generate photo.");
+        setPhotoError("No photo found for this meal.");
       }
     } catch {
-      setPhotoError("Photo generation failed.");
+      setPhotoError("Photo fetch failed. Check your Unsplash key.");
     }
     setPhotoLoading(false);
   };
@@ -56,7 +51,7 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
             {photoLoading ? (
               <div className="photo-loading"><span className="spinner-dark" /> Generating photo…</div>
             ) : (
-              <button className="photo-generate-btn" onClick={generatePhoto} disabled={!apiKey}>
+              <button className="photo-generate-btn" onClick={generatePhoto} disabled={!unsplashKey}>
                 📷 Generate photo
               </button>
             )}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import RecipeModal from "./RecipeModal";
 import "./Favorites.css";
 
-export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
+export default function Favorites({ favorites, days, onRemove, onAddToWeek, unsplashKey }) {
   const [addTarget, setAddTarget] = useState(null);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
@@ -90,6 +90,7 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek }) {
           days={days}
           week={{}}
           favorites={favorites}
+          unsplashKey={unsplashKey}
         />
       )}
     </div>

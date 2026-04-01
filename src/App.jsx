@@ -31,12 +31,13 @@ export default function App() {
 
   // Settings
   const [apiKey, setApiKey]     = useState(() => localStorage.getItem("nf_apikey") || "");
+  const [unsplashKey, setUnsplashKey] = useState(() => localStorage.getItem("nf_unsplash_key") || "");
   const [sbUrl, setSbUrl]       = useState(() => localStorage.getItem("nf_sb_url") || "");
   const [sbKey, setSbKey]       = useState(() => localStorage.getItem("nf_sb_key") || "");
   const [showSettings, setShowSettings] = useState(false);
 
   // Settings form state
-  const [form, setForm] = useState({ apiKey: "", sbUrl: "", sbKey: "", keyVisible: false, sbKeyVisible: false });
+  const [form, setForm] = useState({ apiKey: "", sbUrl: "", sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
 
   // Sync status
   const [syncStatus, setSyncStatus] = useState("idle");
@@ -132,7 +133,11 @@ export default function App() {
       setSbKey(form.sbKey.trim());
       resetSupabaseClient();
     }
-    setForm({ apiKey: "", sbUrl: "", sbKey: "", keyVisible: false, sbKeyVisible: false });
+    if (form.unsplashKey.trim()) {
+      localStorage.setItem("nf_unsplash_key", form.unsplashKey.trim());
+      setUnsplashKey(form.unsplashKey.trim());
+    }
+    setForm({ apiKey: "", sbUrl: "", sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
     setShowSettings(false);
     // Pull from cloud immediately after connecting
     if (form.sbUrl.trim() && form.sbKey.trim()) {
@@ -141,7 +146,7 @@ export default function App() {
   };
 
   const openSettings = () => {
-    setForm({ apiKey: "", sbUrl: sbUrl, sbKey: "", keyVisible: false, sbKeyVisible: false });
+    setForm({ apiKey: "", sbUrl: sbUrl, sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
     setShowSettings(true);
   };
 
@@ -199,10 +204,11 @@ export default function App() {
             onSetPendingMeals={setPendingMeals}
             ratings={ratings}
             onRate={rateMeal}
+            unsplashKey={unsplashKey}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}
-        {tab === "ai"        && <AIChat days={DAYS} week={week} onAddToWeek={addToWeek} onFavorite={addFavorite} favorites={favorites} apiKey={apiKey} onNeedKey={openSettings} />}
+        {tab === "ai"        && <AIChat days={DAYS} week={week} onAddToWeek={addToWeek} onFavorite={addFavorite} favorites={favorites} apiKey={apiKey} onNeedKey={openSettings} unsplashKey={unsplashKey} />}
         {tab === "favorites" && <Favorites favorites={favorites} days={DAYS} onRemove={removeFavorite} onAddToWeek={addToWeek} />}
       </main>
 
@@ -281,6 +287,27 @@ export default function App() {
                   <p className="settings-hint">To sync a second device, copy this ID and paste it into that device's browser console: <code>localStorage.setItem('nf_household_id', 'YOUR_ID')</code> then refresh.</p>
                 </div>
               )}
+            </div>
+
+            {/* ── UNSPLASH ── */}
+            <div className="settings-section">
+              <div className="settings-section-title">
+                <span>📷</span> Unsplash (Meal Photos)
+                {unsplashKey && <span className="settings-badge green">Active</span>}
+              </div>
+              <p className="settings-hint" style={{ marginBottom: 8 }}>Free food photos for each meal. Get a free key at <a href="https://unsplash.com/developers" target="_blank" rel="noreferrer">unsplash.com/developers</a> → New Application.</p>
+              <div className="key-input-row">
+                <input
+                  type={form.unsplashVisible ? "text" : "password"}
+                  className="key-input"
+                  value={form.unsplashKey}
+                  onChange={e => setForm(f => ({ ...f, unsplashKey: e.target.value }))}
+                  placeholder={unsplashKey ? "Enter new key to replace…" : "Your Unsplash Access Key…"}
+                />
+                <button className="key-toggle" onClick={() => setForm(f => ({ ...f, unsplashVisible: !f.unsplashVisible }))}>
+                  {form.unsplashVisible ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             {/* ── SUPABASE SCHEMA ── */}

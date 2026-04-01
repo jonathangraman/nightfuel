@@ -69,7 +69,7 @@ For follow-up questions or conversation, respond as plain text (not JSON).
 Always suggest 3-4 meals unless specified otherwise.
 Ingredient lists: 5-8 items. Steps: 3-5 instructions. Variations: always include exactly 3, covering protein swap, sauce/flavor change, and vegetable swap.`;
 
-export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites, apiKey, onNeedKey }) {
+export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites, apiKey, onNeedKey, unsplashKey }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -296,6 +296,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
           days={days}
           week={week}
           favorites={favorites}
+          unsplashKey={unsplashKey}
         />
       )}
     </div>

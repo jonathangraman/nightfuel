@@ -102,7 +102,7 @@ async function callAI(apiKey, systemPrompt, userMessage) {
   return JSON.parse(cleaned);
 }
 
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
@@ -410,6 +410,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
           rating={ratings?.[selectedMeal?.name] || 0}
           onRate={(r) => onRate?.(selectedMeal?.name, r)}
           apiKey={apiKey}
+          unsplashKey={unsplashKey}
         />
       )}
     </div>
