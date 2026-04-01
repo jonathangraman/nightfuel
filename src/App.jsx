@@ -35,7 +35,8 @@ export default function App() {
   const [form, setForm] = useState({ apiKey: "", sbUrl: "", sbKey: "", keyVisible: false, sbKeyVisible: false });
 
   // Sync status
-  const [syncStatus, setSyncStatus] = useState("idle"); // idle | syncing | synced | error
+  const [syncStatus, setSyncStatus] = useState("idle");
+  const [pendingMeals, setPendingMeals] = useState(null); // survives tab switches // idle | syncing | synced | error
   const [lastSync, setLastSync]     = useState(null);
 
   const sbConfigured = !!(sbUrl && sbKey);
@@ -189,6 +190,8 @@ export default function App() {
             onClearWeek={clearWeek}
             apiKey={apiKey} onNeedKey={openSettings}
             mealHistory={mealHistory}
+            pendingMeals={pendingMeals}
+            onSetPendingMeals={setPendingMeals}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}
