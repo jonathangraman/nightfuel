@@ -1,6 +1,7 @@
 import { useState } from "react";
 import RecipeModal from "./RecipeModal";
 import "./AIChat.css";
+import { getCurrentSeason } from "../data/seasons";
 
 const SYSTEM_PROMPT = `You are NightFuel, a family dinner assistant. Suggest healthy, flavorful weeknight dinners for a family with kids.
 
@@ -36,6 +37,10 @@ When the user asks for meal ideas, respond ONLY with valid JSON (no markdown, no
       "carbs": 12,
       "cookTime": "30 min",
       "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"],
+      "sides": [
+        { "name": "Roasted Broccoli", "description": "Toss with olive oil, roast 18 min at 425F.", "calories": 55 },
+        { "name": "Side Salad", "description": "Mixed greens, lemon vinaigrette.", "calories": 30 }
+      ],
       "steps": [
         { "step": 1, "title": "Prep", "instruction": "Pat chicken dry and season with salt, pepper, and garlic powder.", "time": null },
         { "step": 2, "title": "Sear", "instruction": "Heat oil in a skillet over medium-high. Cook chicken 5-6 min per side until golden.", "time": "12 min" },
@@ -88,10 +93,21 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
     setLoading(true);
 
     try {
+      const season = getCurrentSeason();
       const apiMessages = newMessages.map(m => ({
         role: m.role,
         content: m.rawContent || m.content,
       }));
+      // Prepend seasonal context to last user message
+      if (apiMessages.length > 0) {
+        const last = apiMessages[apiMessages.length - 1];
+        apiMessages[apiMessages.length - 1] = {
+          ...last,
+          content: `${last.content}
+
+[Context: It is ${season.month}. Seasonal produce available: ${season.produce.slice(0,5).join(", ")}. Include 2 suggested sides per meal in the JSON.]`,
+        };
+      }
 
       if (!apiKey) {
         setLoading(false);

@@ -24,6 +24,10 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem("dinnerHistory")) || []; }
     catch { return []; }
   });
+  const [ratings, setRatings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("dinnerRatings")) || {}; }
+    catch { return {}; }
+  });
 
   // Settings
   const [apiKey, setApiKey]     = useState(() => localStorage.getItem("nf_apikey") || "");
@@ -108,6 +112,7 @@ export default function App() {
   };
 
   const addFavorite    = (meal) => setFavorites(f => f.find(m => m.name === meal.name) ? f : [meal, ...f]);
+  const rateMeal       = (name, stars) => setRatings(r => ({ ...r, [name]: stars }));
   const removeFavorite = (name) => setFavorites(f => f.filter(m => m.name !== name));
 
   // ── SETTINGS SAVE ───────────────────────────────────
@@ -192,6 +197,8 @@ export default function App() {
             mealHistory={mealHistory}
             pendingMeals={pendingMeals}
             onSetPendingMeals={setPendingMeals}
+            ratings={ratings}
+            onRate={rateMeal}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}

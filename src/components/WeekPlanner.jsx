@@ -1,7 +1,17 @@
 import { useState } from "react";
 import RecipeModal from "./RecipeModal";
 import NutritionSummary from "./NutritionSummary";
+import GroceryList from "./GroceryList";
+import StarRating from "./StarRating";
+import { getCurrentSeason } from "../data/seasons";
 import "./WeekPlanner.css";
+
+const COOK_TIME_OPTIONS = [
+  { label: "Any time",  value: null,  mins: null },
+  { label: "≤ 20 min",  value: 20,    mins: 20 },
+  { label: "≤ 30 min",  value: 30,    mins: 30 },
+  { label: "≤ 45 min",  value: 45,    mins: 45 },
+];
 
 const FAMILY_CONTEXT = `
 FAMILY PREFERENCES:
@@ -16,8 +26,35 @@ HEALTH GOALS:
 - Low carb or moderate carb
 - High protein (30g+ per serving ideal)
 - Low calorie (under 600 cal/serving)
-- Kid-friendly but NOT boring
-- Ready in 45 minutes or less`;
+- Kid-friendly but NOT boring`;
+
+function buildMealSchema(day = "Monday") {
+  return `{
+      "day": "${day}",
+      "name": "Meal Name",
+      "description": "1-2 sentence description",
+      "tags": ["Low Carb", "High Protein", "Quick"],
+      "calories": 420,
+      "protein": 38,
+      "carbs": 12,
+      "cookTime": "30 min",
+      "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"],
+      "sides": [
+        { "name": "Roasted Broccoli", "description": "Toss with olive oil and roast at 425°F for 18 minutes.", "calories": 55 },
+        { "name": "Side Salad", "description": "Mixed greens, cucumber, lemon vinaigrette.", "calories": 30 }
+      ],
+      "steps": [
+        { "step": 1, "title": "Prep", "instruction": "Pat chicken dry and season.", "time": null },
+        { "step": 2, "title": "Sear", "instruction": "Cook 5-6 min per side until golden.", "time": "12 min" },
+        { "step": 3, "title": "Serve", "instruction": "Rest 3 minutes and serve.", "time": "3 min" }
+      ],
+      "variations": [
+        { "label": "Swap the protein", "suggestion": "Use salmon fillets instead — reduce cook time to 4 min per side." },
+        { "label": "Change the sauce", "suggestion": "Try a lemon herb sauce instead for a Mediterranean twist." },
+        { "label": "Swap the vegetable", "suggestion": "Use asparagus instead of broccoli — roast at same temp for 10 minutes." }
+      ]
+    }`;
+}
 
 const WEEK_SYSTEM_PROMPT = `You are NightFuel, a family dinner assistant. Plan healthy weeknight dinners for a family with kids.
 ${FAMILY_CONTEXT}
@@ -27,59 +64,20 @@ RULES FOR VARIETY:
 - Spread cuisines — no two same cuisines back to back
 - Mix up cooking methods
 - Avoid any meals listed in the recent history
+- When seasonal produce is mentioned, incorporate it into vegetable sides and ingredients
 
-Respond ONLY with valid JSON (no markdown, no backticks) in this exact format:
-{
-  "meals": [
-    {
-      "day": "Monday",
-      "name": "Meal Name",
-      "description": "1-2 sentence description",
-      "tags": ["Low Carb", "High Protein", "Quick"],
-      "calories": 420,
-      "protein": 38,
-      "carbs": 12,
-      "cookTime": "30 min",
-      "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"],
-      "steps": [
-        { "step": 1, "title": "Prep", "instruction": "Pat chicken dry and season.", "time": null },
-        { "step": 2, "title": "Sear", "instruction": "Cook 5-6 min per side until golden.", "time": "12 min" },
-        { "step": 3, "title": "Serve", "instruction": "Rest 3 minutes and serve with vegetables.", "time": "3 min" }
-      ],
-      "variations": [
-        { "label": "Swap the protein", "suggestion": "Use salmon fillets instead — reduce cook time to 4 min per side." },
-        { "label": "Change the sauce", "suggestion": "Try a lemon herb sauce instead for a Mediterranean twist." },
-        { "label": "Swap the vegetable", "suggestion": "Use asparagus instead of broccoli — roast at same temp for 10 minutes." }
-      ]
-    }
-  ]
-}`;
+Always include 2 suggested sides per meal. Sides should be specific with brief prep instructions and calories.
+
+Respond ONLY with valid JSON (no markdown, no backticks):
+{ "meals": [${buildMealSchema()}] }`;
 
 const DAY_SYSTEM_PROMPT = `You are NightFuel, a family dinner assistant. Suggest ONE healthy weeknight dinner for a specific day.
 ${FAMILY_CONTEXT}
 
-Respond ONLY with valid JSON (no markdown, no backticks) for a single meal:
-{
-  "day": "Wednesday",
-  "name": "Meal Name",
-  "description": "1-2 sentence description",
-  "tags": ["Low Carb", "High Protein", "Quick"],
-  "calories": 420,
-  "protein": 38,
-  "carbs": 12,
-  "cookTime": "30 min",
-  "ingredients": ["chicken thighs", "broccoli", "garlic", "soy sauce", "sesame oil"],
-  "steps": [
-    { "step": 1, "title": "Prep", "instruction": "Pat chicken dry and season.", "time": null },
-    { "step": 2, "title": "Sear", "instruction": "Cook 5-6 min per side until golden.", "time": "12 min" },
-    { "step": 3, "title": "Serve", "instruction": "Rest 3 minutes and serve with vegetables.", "time": "3 min" }
-  ],
-  "variations": [
-    { "label": "Swap the protein", "suggestion": "Use salmon fillets instead — reduce cook time to 4 min per side." },
-    { "label": "Change the sauce", "suggestion": "Try a lemon herb sauce instead for a Mediterranean twist." },
-    { "label": "Swap the vegetable", "suggestion": "Use asparagus instead of broccoli — roast at same temp for 10 minutes." }
-  ]
-}`;
+Always include 2 suggested sides. When seasonal produce is mentioned, use it.
+
+Respond ONLY with valid JSON (no markdown, no backticks) — a single meal object:
+${buildMealSchema("Wednesday")}`;
 
 async function callAI(apiKey, systemPrompt, userMessage) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -98,101 +96,87 @@ async function callAI(apiKey, systemPrompt, userMessage) {
     }),
   });
   const data = await res.json();
-  // Surface any API errors clearly
-  if (!res.ok || data.error) {
-    const msg = data.error?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
+  if (!res.ok || data.error) throw new Error(data.error?.message || `HTTP ${res.status}`);
   const raw = data.content?.[0]?.text || "";
   const cleaned = raw.replace(/```json|```/g, "").trim();
   return JSON.parse(cleaned);
 }
 
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
-  const [generating, setGenerating]       = useState(false);      // full week
-  const [generatingDay, setGeneratingDay] = useState(null);       // single day
-  const [daySuggestion, setDaySuggestion] = useState({});         // { Monday: meal, ... }
+  const [generating, setGenerating]       = useState(false);
+  const [generatingDay, setGeneratingDay] = useState(null);
+  const [daySuggestion, setDaySuggestion] = useState({});
   const [error, setError]                 = useState(null);
   const [toast, setToast]                 = useState(null);
+  const [showGrocery, setShowGrocery]     = useState(false);
+  const [cookTimeFilter, setCookTimeFilter] = useState(null); // null = any
 
   const filled    = days.filter(d => week[d]).length;
   const emptyDays = days.filter(d => !week[d]);
+  const season    = getCurrentSeason();
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2800);
-  };
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
 
   const saveMealForLater = (meal) => {
     onFavorite(meal);
     showToast(`"${meal.name}" saved — use "From saved" on any empty day next week`);
   };
 
-  // ── GENERATE FULL WEEK ─────────────────────────────────
+  // Build shared context for AI calls
+  const buildContext = (forDays, existingPlan = "") => {
+    const recentNames = (mealHistory || []).map(m => m.name).join(", ");
+    const ratingContext = Object.entries(ratings || {})
+      .filter(([, r]) => r > 0)
+      .map(([name, r]) => `${name}: ${r}/5`)
+      .join(", ");
+
+    return [
+      `Plan meals for: ${forDays.join(", ")}.`,
+      recentNames    ? `Recent meals to AVOID: ${recentNames}.`                             : "",
+      existingPlan   ? `Already planned this week (avoid repeating proteins/cuisines): ${existingPlan}.` : "",
+      cookTimeFilter ? `IMPORTANT: All meals must be ready in ${cookTimeFilter} minutes or less.`        : "",
+      season.note,
+      ratingContext  ? `Meal ratings for reference (suggest similar to high-rated, avoid similar to low-rated): ${ratingContext}.` : "",
+    ].filter(Boolean).join("\n");
+  };
+
+  // ── GENERATE FULL WEEK ──────────────────────────────
   const generateWeek = async () => {
     if (!apiKey) { onNeedKey?.(); return; }
     setGenerating(true);
     setError(null);
     onSetPendingMeals(null);
 
-    const recentNames = (mealHistory || []).map(m => m.name).join(", ");
     const daysToFill  = emptyDays.length > 0 ? emptyDays : days;
-
-    const alreadyPlanned = days
-      .filter(d => week[d])
-      .map(d => `${d}: ${week[d].name}`)
-      .join(", ");
-
-    const msg = [
-      `Plan meals for: ${daysToFill.join(", ")}.`,
-      recentNames   ? `Recent meals to AVOID: ${recentNames}.`      : "",
-      alreadyPlanned? `Already planned this week: ${alreadyPlanned}. Don't repeat these proteins or cuisines.` : "",
-      `Return one meal per requested day. Always return exactly ${daysToFill.length} meal(s).`,
-    ].filter(Boolean).join("\n");
+    const alreadyPlanned = days.filter(d => week[d]).map(d => `${d}: ${week[d].name}`).join(", ");
+    const msg = buildContext(daysToFill, alreadyPlanned) + `\nReturn exactly ${daysToFill.length} meal(s).`;
 
     try {
       const parsed = await callAI(apiKey, WEEK_SYSTEM_PROMPT, msg);
-      if (parsed?.meals?.length > 0) {
-        onSetPendingMeals(parsed.meals);
-      } else {
-        setError("Couldn't parse suggestions. Try again.");
-      }
+      if (parsed?.meals?.length > 0) onSetPendingMeals(parsed.meals);
+      else setError("Couldn't parse suggestions. Try again.");
     } catch (err) {
       setError(err.message || "Something went wrong. Check your API key and try again.");
     }
     setGenerating(false);
   };
 
-  // ── GENERATE FOR ONE DAY ───────────────────────────────
+  // ── GENERATE FOR ONE DAY ────────────────────────────
   const generateForDay = async (day) => {
     if (!apiKey) { onNeedKey?.(); return; }
     setGeneratingDay(day);
     setDaySuggestion(s => ({ ...s, [day]: null }));
 
-    const recentNames = (mealHistory || []).map(m => m.name).join(", ");
-    const alreadyPlanned = days
-      .filter(d => week[d] && d !== day)
-      .map(d => `${d}: ${week[d].name}`)
-      .join(", ");
-
-    const msg = [
-      `Suggest ONE dinner for ${day}.`,
-      recentNames    ? `Recent meals to AVOID: ${recentNames}.` : "",
-      alreadyPlanned ? `Already planned this week — avoid repeating these proteins or cuisines: ${alreadyPlanned}.` : "",
-      `Return a single meal object with "day": "${day}".`,
-    ].filter(Boolean).join("\n");
+    const alreadyPlanned = days.filter(d => week[d] && d !== day).map(d => `${d}: ${week[d].name}`).join(", ");
+    const msg = buildContext([day], alreadyPlanned) + `\nReturn a single meal object with "day": "${day}".`;
 
     try {
       const parsed = await callAI(apiKey, DAY_SYSTEM_PROMPT, msg);
-      // Handle both { day, name, ... } and { meals: [...] }
       const meal = parsed?.meals?.[0] || parsed;
-      if (meal?.name) {
-        setDaySuggestion(s => ({ ...s, [day]: { ...meal, day } }));
-      } else {
-        showToast("Couldn't get a suggestion. Try again.");
-      }
+      if (meal?.name) setDaySuggestion(s => ({ ...s, [day]: { ...meal, day } }));
+      else showToast("Couldn't get a suggestion. Try again.");
     } catch (err) {
       showToast(err.message || "Something went wrong. Check your API key.");
     }
@@ -201,21 +185,14 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
   const acceptDaySuggestion = (day) => {
     const meal = daySuggestion[day];
-    if (meal) {
-      onAddMeal(meal, day);
-      setDaySuggestion(s => ({ ...s, [day]: null }));
-    }
+    if (meal) { onAddMeal(meal, day); setDaySuggestion(s => ({ ...s, [day]: null })); }
   };
 
-  const dismissDaySuggestion = (day) => {
-    setDaySuggestion(s => ({ ...s, [day]: null }));
-  };
+  const dismissDaySuggestion = (day) => setDaySuggestion(s => ({ ...s, [day]: null }));
 
-  // ── WEEK PENDING ───────────────────────────────────────
+  // ── WEEK PENDING ────────────────────────────────────
   const acceptAll = () => {
-    pendingMeals.forEach(meal => {
-      if (days.includes(meal.day)) onAddMeal(meal, meal.day);
-    });
+    pendingMeals.forEach(meal => { if (days.includes(meal.day)) onAddMeal(meal, meal.day); });
     onSetPendingMeals(null);
   };
 
@@ -224,18 +201,29 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
     onSetPendingMeals(prev => prev.filter(m => m.day !== meal.day));
   };
 
-  const rejectOne = (meal) => {
-    onSetPendingMeals(prev => prev.filter(m => m.day !== meal.day));
-  };
+  const rejectOne = (meal) => onSetPendingMeals(prev => prev.filter(m => m.day !== meal.day));
 
   return (
     <div className="planner">
       <div className="planner-header">
         <div>
           <h1 className="section-title">This Week's Dinners</h1>
-          <p className="section-sub">{filled} of {days.length} nights planned · weeknight meals for the family</p>
+          <p className="section-sub">{filled} of {days.length} nights planned · {season.month}</p>
         </div>
         <div className="planner-actions">
+          {/* Cook time filter */}
+          <div className="cook-filter">
+            {COOK_TIME_OPTIONS.map(opt => (
+              <button
+                key={opt.label}
+                className={`cook-chip ${cookTimeFilter === opt.value ? "active" : ""}`}
+                onClick={() => setCookTimeFilter(opt.value)}
+              >{opt.label}</button>
+            ))}
+          </div>
+          {filled > 0 && (
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowGrocery(true)}>🛒 Grocery List</button>
+          )}
           {filled < days.length && (
             <button className="btn btn-primary" onClick={generateWeek} disabled={generating || !!generatingDay}>
               {generating ? <><span className="spinner" /> Planning…</> : "✦ AI Plan My Week"}
@@ -243,7 +231,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
           )}
           {filled > 0 && (
             <button className="btn btn-ghost" onClick={() => {
-              if (confirm("Clear this week's plan? Current meals will be saved to history.")) onClearWeek?.();
+              if (confirm("Clear this week's plan? Meals will be saved to history.")) onClearWeek?.();
             }}>Clear week</button>
           )}
         </div>
@@ -277,13 +265,18 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                 <div className="preview-macros">
                   {meal.calories && <span><strong>{meal.calories}</strong> cal</span>}
                   {meal.protein  && <span><strong>{meal.protein}g</strong> protein</span>}
-                  {meal.carbs    && <span><strong>{meal.carbs}g</strong> carbs</span>}
                 </div>
+                {meal.sides?.length > 0 && (
+                  <div className="preview-sides">
+                    <span className="preview-sides-label">Sides:</span>
+                    {meal.sides.map(s => <span key={s.name} className="preview-side-chip">{s.name}</span>)}
+                  </div>
+                )}
                 <div className="preview-meal-actions">
                   <button className="btn btn-primary btn-sm" onClick={() => acceptOne(meal)}>✓ Add to {meal.day}</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => saveMealForLater(meal)}>♡ Save for later</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => rejectOne(meal)}>✕ Skip</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => saveMealForLater(meal)}>♡ Save</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>Recipe</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => rejectOne(meal)}>✕</button>
                 </div>
               </div>
             ))}
@@ -297,6 +290,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
           const meal       = week[day];
           const suggestion = daySuggestion[day];
           const isLoading  = generatingDay === day;
+          const mealRating = meal ? (ratings?.[meal.name] || 0) : 0;
 
           return (
             <div key={day} className={`day-slot ${meal ? "filled" : "empty-slot"}`}>
@@ -308,24 +302,24 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                     {meal.name}
                   </div>
                   <div className="meal-meta">
-                    {meal.tags?.map(tag => (
-                      <span key={tag} className={`tag tag-${tagColor(tag)}`}>{tag}</span>
-                    ))}
+                    {meal.tags?.map(tag => <span key={tag} className={`tag tag-${tagColor(tag)}`}>{tag}</span>)}
                   </div>
                   <p className="meal-desc">{meal.description}</p>
                   <div className="macros">
                     {meal.calories && <span className="macro"><strong>{meal.calories}</strong> cal</span>}
                     {meal.protein  && <span className="macro"><strong>{meal.protein}g</strong> protein</span>}
-                    {meal.carbs    && <span className="macro"><strong>{meal.carbs}g</strong> carbs</span>}
                   </div>
-                  <div className="meal-actions" style={{ marginTop: 12 }}>
+                  {/* STAR RATING */}
+                  <div className="day-rating">
+                    <StarRating value={mealRating} onChange={(r) => onRate?.(meal.name, r)} size="sm" />
+                  </div>
+                  <div className="meal-actions" style={{ marginTop: 8 }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => onFavorite(meal)}>♡ Save</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => onClear(day)}>× Remove</button>
                   </div>
                 </div>
               ) : suggestion ? (
-                // ── PER-DAY SUGGESTION PREVIEW ─────────────
                 <div className="day-suggestion">
                   <div className="ds-label">✦ Suggestion</div>
                   <div className="ds-name">{suggestion.name}</div>
@@ -338,32 +332,29 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                     {suggestion.calories && <span><strong>{suggestion.calories}</strong> cal</span>}
                     {suggestion.protein  && <span><strong>{suggestion.protein}g</strong> protein</span>}
                   </div>
+                  {suggestion.sides?.length > 0 && (
+                    <div className="ds-sides">
+                      {suggestion.sides.map(s => <span key={s.name} className="ds-side-chip">{s.name}</span>)}
+                    </div>
+                  )}
                   <div className="ds-actions">
                     <button className="btn btn-primary btn-sm" onClick={() => acceptDaySuggestion(day)}>✓ Add</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => saveMealForLater(suggestion)}>♡ Save</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(suggestion)}>Recipe</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => generateForDay(day)} disabled={isLoading}>↺ Try another</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => generateForDay(day)} disabled={isLoading}>↺ New</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => dismissDaySuggestion(day)}>✕</button>
                   </div>
                 </div>
               ) : (
-                // ── EMPTY DAY ──────────────────────────────
                 <div className="day-empty">
                   {isLoading ? (
-                    <div className="day-loading">
-                      <span className="spinner-dark" />
-                      <span>Finding ideas…</span>
-                    </div>
+                    <div className="day-loading"><span className="spinner-dark" /><span>Finding ideas…</span></div>
                   ) : (
                     <>
                       <div className="day-empty-icon">+</div>
                       <p>No meal planned</p>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => generateForDay(day)}
-                          disabled={!!generatingDay || generating}
-                        >
+                        <button className="btn btn-ghost btn-sm" onClick={() => generateForDay(day)} disabled={!!generatingDay || generating}>
                           ✦ AI suggest
                         </button>
                         {favorites.length > 0 && (
@@ -372,13 +363,12 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
                           </button>
                         )}
                       </div>
-                      {dayPicker === day && favorites.length > 0 && (
+                      {dayPicker === day && (
                         <div className="fav-picker">
                           {favorites.map(f => (
-                            <button key={f.name} className="fav-pick-item" onClick={() => {
-                              onAddMeal(f, day);
-                              setDayPicker(null);
-                            }}>{f.name}</button>
+                            <button key={f.name} className="fav-pick-item" onClick={() => { onAddMeal(f, day); setDayPicker(null); }}>
+                              {f.name}
+                            </button>
                           ))}
                         </div>
                       )}
@@ -400,19 +390,13 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
             <strong>Full week planned!</strong>
             <p>Your family dinners are all set.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => {
-            const items = days.flatMap(d => week[d]?.ingredients || []);
-            const unique = [...new Set(items)];
-            alert("🛒 Grocery List:\n\n" + unique.map(i => `• ${i}`).join("\n"));
-          }}>🛒 Grocery List</button>
+          <button className="btn btn-primary" onClick={() => setShowGrocery(true)}>🛒 Grocery List</button>
         </div>
       )}
 
-      {toast && (
-        <div className="planner-toast">
-          <span>✓</span> {toast}
-        </div>
-      )}
+      {toast && <div className="planner-toast"><span>✓</span> {toast}</div>}
+
+      {showGrocery && <GroceryList week={week} days={days} onClose={() => setShowGrocery(false)} />}
 
       {selectedMeal && (
         <RecipeModal
@@ -423,6 +407,9 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
           days={days}
           week={week}
           favorites={favorites}
+          rating={ratings?.[selectedMeal?.name] || 0}
+          onRate={(r) => onRate?.(selectedMeal?.name, r)}
+          apiKey={apiKey}
         />
       )}
     </div>
