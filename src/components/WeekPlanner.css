@@ -450,3 +450,57 @@
 @media (max-width: 480px) {
   .week-grid { grid-template-columns: 1fr; }
 }
+
+/* ── NOT TODAY EXCLUDES ── */
+.not-today-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.not-today-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.not-today-chip {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.not-today-chip:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.excluded-bar {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 4px;
+  padding: 4px 0;
+}
+
+.clear-excludes {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding: 0;
+  text-decoration: underline;
+}

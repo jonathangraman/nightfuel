@@ -171,12 +171,23 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
   };
 
   // ── GENERATE FOR ONE DAY ────────────────────────────
-  const generateForDay = async (day) => {
+  const generateForDay = async (day, additionalExcludes = []) => {
     setGeneratingDay(day);
     setDaySuggestion(s => ({ ...s, [day]: null }));
 
     const alreadyPlanned = days.filter(d => week[d] && d !== day).map(d => `${d}: ${week[d].name}`).join(", ");
-    const msg = buildContext([day], alreadyPlanned) + `\nReturn a single meal object with "day": "${day}".`;
+    const currentSuggestion = daySuggestion[day]?.name;
+    const excluded = [...(excludeProteins[day] || []), ...additionalExcludes];
+    const excludeNote = [
+      currentSuggestion ? `Do NOT suggest "${currentSuggestion}" again — give something completely different.` : "",
+      excluded.length ? `EXCLUDED proteins/ingredients for today: ${excluded.join(", ")} — do not use these AT ALL.` : "",
+    ].filter(Boolean).join(" ");
+
+    const msg = buildContext([day], alreadyPlanned)
+      + (excludeNote ? `
+${excludeNote}` : "")
+      + `
+Return a single meal object with "day": "${day}".`;
 
     try {
       const parsed = await callAI(DAY_SYSTEM_PROMPT, msg);
@@ -188,6 +199,16 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
     }
     setGeneratingDay(null);
   };
+
+  const addExclude = (day, protein) => {
+    setExcludeProteins(prev => ({
+      ...prev,
+      [day]: [...new Set([...(prev[day] || []), protein])],
+    }));
+    generateForDay(day, [protein]);
+  };
+
+  const clearExcludes = (day) => setExcludeProteins(prev => ({ ...prev, [day]: [] }));
 
   const acceptDaySuggestion = (day) => {
     const meal = daySuggestion[day];

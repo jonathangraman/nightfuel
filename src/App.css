@@ -876,3 +876,15 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── SIGN OUT NAV BUTTON ── */
+.signout-btn {
+  color: var(--red) !important;
+  border-color: var(--red) !important;
+  font-size: 16px !important;
+  padding: 4px 10px !important;
+}
+
+.signout-btn:hover {
+  background: #fee2e2 !important;
+}

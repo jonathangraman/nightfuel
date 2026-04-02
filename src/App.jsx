@@ -237,9 +237,12 @@ export default function App() {
             {syncIndicator && (
               <span className={`sync-indicator ${syncStatus}`}>{syncIndicator}</span>
             )}
-            <button className={`nav-btn key-btn ${apiKey ? "key-set" : "key-missing"}`} onClick={openSettings}>
-              ⚙
-            </button>
+            <button className={`nav-btn key-btn`} onClick={openSettings}>⚙</button>
+            {user && (
+              <button className="nav-btn signout-btn" onClick={async () => { await signOut(); setUser(null); }}>
+                ↩
+              </button>
+            )}
           </nav>
         </div>
       </header>
