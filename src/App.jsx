@@ -105,6 +105,12 @@ export default function App() {
     if (r1.data) { setWeek(r1.data);        localStorage.setItem("dinnerWeek",    JSON.stringify(r1.data)); }
     if (r2.data) { setFavorites(r2.data);   localStorage.setItem("dinnerFavs",    JSON.stringify(r2.data)); }
     if (r3.data) { setMealHistory(r3.data); localStorage.setItem("dinnerHistory", JSON.stringify(r3.data)); }
+    // Pull settings (unsplash key etc)
+    const rSettings = await syncLoad("nf_settings");
+    if (rSettings.data?.unsplashKey) {
+      localStorage.setItem("nf_unsplash_key", rSettings.data.unsplashKey);
+      setUnsplashKey(rSettings.data.unsplashKey);
+    }
     setSyncStatus("synced");
     setLastSync(new Date());
   }, []);
@@ -169,6 +175,8 @@ export default function App() {
     if (form.unsplashKey.trim()) {
       localStorage.setItem("nf_unsplash_key", form.unsplashKey.trim());
       setUnsplashKey(form.unsplashKey.trim());
+      // Sync to Supabase so it works on all devices
+      syncSave("nf_settings", { unsplashKey: form.unsplashKey.trim() });
     }
     setForm({ apiKey: "", sbUrl: "", sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
     setShowSettings(false);

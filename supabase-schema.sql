@@ -40,3 +40,10 @@ create policy "Users own their history"   on nf_history   for all using (auth.ui
 -- Note: Magic Link auth is enabled by default in Supabase.
 -- Go to Authentication → Providers → Email and confirm it's enabled.
 -- You may want to disable "Confirm email" if you want instant access after magic link.
+
+-- AUTH SETUP NOTES (do these in Supabase Dashboard):
+-- 1. Authentication → Providers → Email → make sure "Enable Email provider" is ON
+-- 2. Authentication → Providers → Email → turn OFF "Confirm email" for easier testing
+--    (you can turn it back on later for security)
+-- 3. Authentication → URL Configuration → Site URL = your Vercel URL
+-- 4. No need to configure Magic Links — this app uses email/password now

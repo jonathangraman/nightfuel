@@ -1,27 +1,36 @@
 import { useState } from "react";
 import "./Auth.css";
 
-export default function Auth({ supabase, onAuth }) {
-  const [email, setEmail]     = useState("");
-  const [sent, setSent]       = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+export default function Auth({ supabase }) {
+  const [mode, setMode]           = useState("login"); // "login" | "signup" | "reset"
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [message, setMessage]     = useState(null);
+  const [showPass, setShowPass]   = useState(false);
 
-  const sendMagicLink = async () => {
-    if (!email.trim()) return;
+  const handleSubmit = async () => {
+    if (!email.trim() || (!password.trim() && mode !== "reset")) return;
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      setError(error.message);
-    } else {
-      setSent(true);
+    setMessage(null);
+
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) setError(error.message);
+    } else if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+      if (error) setError(error.message);
+      else setMessage("Account created! Check your email to confirm, then sign in.");
+    } else if (mode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin,
+      });
+      if (error) setError(error.message);
+      else setMessage("Password reset email sent — check your inbox.");
     }
+
     setLoading(false);
   };
 
@@ -34,48 +43,58 @@ export default function Auth({ supabase, onAuth }) {
           <div className="auth-logo-sub">weeknight meals that don't suck</div>
         </div>
 
-        {sent ? (
-          <div className="auth-sent">
-            <div className="auth-sent-icon">📬</div>
-            <h2>Check your email</h2>
-            <p>We sent a magic link to <strong>{email}</strong>. Click it to sign in — no password needed.</p>
-            <button className="btn btn-ghost" style={{ marginTop: 16 }} onClick={() => { setSent(false); setEmail(""); }}>
-              Use a different email
+        <div className="auth-tabs">
+          <button className={`auth-tab ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setError(null); setMessage(null); }}>Sign in</button>
+          <button className={`auth-tab ${mode === "signup" ? "active" : ""}`} onClick={() => { setMode("signup"); setError(null); setMessage(null); }}>Create account</button>
+        </div>
+
+        {mode === "reset" ? (
+          <div className="auth-form">
+            <p className="auth-desc">Enter your email and we'll send a password reset link.</p>
+            <div className="auth-input-group">
+              <label className="key-label">Email</label>
+              <input type="email" className="key-input" style={{ width: "100%" }} value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} placeholder="you@example.com" autoFocus />
+            </div>
+            {error   && <div className="auth-error">⚠ {error}</div>}
+            {message && <div className="auth-message">✓ {message}</div>}
+            <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} onClick={handleSubmit} disabled={loading || !email.trim()}>
+              {loading ? "Sending…" : "Send reset link"}
             </button>
+            <button className="auth-link" onClick={() => { setMode("login"); setError(null); setMessage(null); }}>← Back to sign in</button>
           </div>
         ) : (
           <div className="auth-form">
-            <h2 className="auth-title">Sign in</h2>
-            <p className="auth-desc">Enter your email and we'll send you a magic link — no password required.</p>
-
             <div className="auth-input-group">
-              <label className="key-label">Email address</label>
-              <input
-                type="email"
-                className="key-input"
-                style={{ width: "100%" }}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && email && sendMagicLink()}
-                placeholder="you@example.com"
-                autoFocus
-              />
+              <label className="key-label">Email</label>
+              <input type="email" className="key-input" style={{ width: "100%" }} value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoFocus />
             </div>
-
-            {error && <div className="auth-error">⚠ {error}</div>}
-
-            <button
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: 16 }}
-              onClick={sendMagicLink}
-              disabled={loading || !email.trim()}
-            >
-              {loading ? "Sending…" : "Send magic link"}
+            <div className="auth-input-group" style={{ marginTop: 10 }}>
+              <label className="key-label">Password</label>
+              <div className="key-input-row">
+                <input
+                  type={showPass ? "text" : "password"}
+                  className="key-input"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                  placeholder={mode === "signup" ? "Create a password" : "Your password"}
+                />
+                <button className="key-toggle" onClick={() => setShowPass(v => !v)}>{showPass ? "Hide" : "Show"}</button>
+              </div>
+            </div>
+            {error   && <div className="auth-error">⚠ {error}</div>}
+            {message && <div className="auth-message">✓ {message}</div>}
+            <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} onClick={handleSubmit} disabled={loading || !email.trim() || !password.trim()}>
+              {loading ? (mode === "login" ? "Signing in…" : "Creating account…") : (mode === "login" ? "Sign in" : "Create account")}
             </button>
-
-            <p className="auth-hint">
-              Your meal plans, favorites, and history are tied to your account and sync across all your devices.
-            </p>
+            {mode === "login" && (
+              <button className="auth-link" onClick={() => { setMode("reset"); setError(null); setMessage(null); }}>
+                Forgot password?
+              </button>
+            )}
+            {mode === "signup" && (
+              <p className="auth-hint">Your meal plans sync across all your devices once logged in.</p>
+            )}
           </div>
         )}
       </div>
