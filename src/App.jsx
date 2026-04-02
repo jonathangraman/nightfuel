@@ -314,43 +314,18 @@ export default function App() {
             <div className="settings-section">
               <div className="settings-section-title">
                 <span>☁</span> Cloud Sync (Supabase)
-                {sbConfigured && <span className="settings-badge green">Connected</span>}
+                {sbConfigured ? <span className="settings-badge green">Connected</span> : <span className="settings-badge">Not configured</span>}
               </div>
-              <p className="settings-hint" style={{ marginBottom: 10 }}>
-                Syncs your week plan, favorites, and meal history across all your devices. Free at supabase.com.
-              </p>
-
-              <label className="key-label">Project URL</label>
-              <input
-                type="text"
-                className="key-input"
-                style={{ marginBottom: 8, width: "100%" }}
-                value={form.sbUrl}
-                onChange={e => setForm(f => ({ ...f, sbUrl: e.target.value }))}
-                placeholder="https://xxxx.supabase.co"
-              />
-
-              <label className="key-label">Anon Public Key</label>
-              <div className="key-input-row">
-                <input
-                  type={form.sbKeyVisible ? "text" : "password"}
-                  className="key-input"
-                  value={form.sbKey}
-                  onChange={e => setForm(f => ({ ...f, sbKey: e.target.value }))}
-                  placeholder={sbConfigured ? "Enter new key to replace…" : "eyJ…"}
-                />
-                <button className="key-toggle" onClick={() => setForm(f => ({ ...f, sbKeyVisible: !f.sbKeyVisible }))}>
-                  {form.sbKeyVisible ? "Hide" : "Show"}
-                </button>
-              </div>
-              <p className="settings-hint">Find both at supabase.com → your project → Settings → API</p>
-
-              {sbConfigured && (
-                <div className="household-id">
-                  <span className="key-label">Household ID</span>
-                  <code className="hid-code">{getHouseholdId()}</code>
-                  <p className="settings-hint">To sync a second device, copy this ID and paste it into that device's browser console: <code>localStorage.setItem('nf_household_id', 'YOUR_ID')</code> then refresh.</p>
-                </div>
+              {sbConfigured ? (
+                <p className="settings-hint">
+                  Cloud sync is active — your data syncs across all devices automatically.
+                  Supabase credentials are configured via Vercel environment variables.
+                </p>
+              ) : (
+                <p className="settings-hint">
+                  Cloud sync is not configured. Add <strong>VITE_SUPABASE_URL</strong> and <strong>VITE_SUPABASE_ANON_KEY</strong> to your 
+                  <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"> Vercel environment variables</a> to enable sync across devices.
+                </p>
               )}
             </div>
 
@@ -375,39 +350,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* ── SUPABASE SCHEMA ── */}
-            {!sbConfigured && (
-              <div className="settings-section schema-section">
-                <div className="settings-section-title">📋 Supabase Setup</div>
-                <p className="settings-hint" style={{ marginBottom: 8 }}>
-                  1. Create a free project at <a href="https://supabase.com" target="_blank" rel="noreferrer">supabase.com</a><br/>
-                  2. Go to <strong>SQL Editor</strong> and run this schema:
-                </p>
-                <pre className="schema-pre">{`create table nf_week (
-  household_id text primary key,
-  data text not null,
-  updated_at timestamptz default now()
-);
-create table nf_favorites (
-  household_id text primary key,
-  data text not null,
-  updated_at timestamptz default now()
-);
-create table nf_history (
-  household_id text primary key,
-  data text not null,
-  updated_at timestamptz default now()
-);
-alter table nf_week      enable row level security;
-alter table nf_favorites enable row level security;
-alter table nf_history   enable row level security;
-create policy "allow all" on nf_week      for all using (true) with check (true);
-create policy "allow all" on nf_favorites for all using (true) with check (true);
-create policy "allow all" on nf_history   for all using (true) with check (true);`}
-                </pre>
-                <p className="settings-hint">3. Then paste your Project URL and anon key above.</p>
-              </div>
-            )}
+
 
             <div style={{ padding: "0 28px 24px", display: "flex", gap: 10 }}>
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={saveSettings}>

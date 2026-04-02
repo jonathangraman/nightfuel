@@ -391,3 +391,35 @@
 }
 
 .side-card { position: relative; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .builder-layout  { grid-template-columns: 1fr; }
+  .builder-summary { position: static; }
+
+  .mb-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mb-tabs::-webkit-scrollbar { display: none; }
+  .mb-tab { font-size: 12px; padding: 7px 12px; white-space: nowrap; }
+
+  .protein-grid { grid-template-columns: repeat(3, 1fr); }
+  .sauce-grid   { grid-template-columns: 1fr 1fr; }
+  .sides-grid   { grid-template-columns: repeat(3, 1fr); }
+
+  .library-header { flex-direction: column; }
+  .library-grid   { grid-template-columns: 1fr; }
+
+  .cuisine-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+  }
+  .cuisine-filters::-webkit-scrollbar { display: none; }
+  .cuisine-chip { flex-shrink: 0; }
+}

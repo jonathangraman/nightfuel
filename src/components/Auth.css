@@ -164,3 +164,13 @@
   font-size: 13px;
   margin-top: 8px;
 }
+
+@media (max-width: 480px) {
+  .auth-screen { padding: 0; align-items: flex-end; }
+  .auth-card {
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 100%;
+  }
+}

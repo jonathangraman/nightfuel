@@ -265,3 +265,27 @@
   color: var(--text);
   line-height: 1.5;
 }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .weekend-grid { grid-template-columns: 1fr; }
+
+  .weekend-header { flex-direction: column; gap: 10px; }
+  .weekend-header .planner-actions { width: 100%; }
+  .weekend-header .btn { width: 100%; justify-content: center; }
+
+  .cook-style-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+  }
+  .cook-style-bar::-webkit-scrollbar { display: none; }
+  .cook-style-chip { flex-shrink: 0; font-size: 12px; }
+  .cook-style-label { display: none; }
+
+  .weekend-options-grid { grid-template-columns: 1fr; }
+  .weekend-option-card  { border-right: none; border-bottom: 1px solid var(--border); }
+  .weekend-option-card:last-child { border-bottom: none; }
+}

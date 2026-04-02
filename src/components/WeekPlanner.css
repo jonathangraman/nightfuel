@@ -389,3 +389,64 @@
 
 .note-textarea:focus { border-color: var(--accent); }
 .note-textarea::placeholder { color: var(--text-light); }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .week-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .planner-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .planner-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .planner-actions .btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .cook-filter {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cook-filter::-webkit-scrollbar { display: none; }
+
+  .cook-chip {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .cuisine-balance { display: none; }
+
+  .day-label { font-size: 9px; }
+  .day-meal .meal-name { font-size: 13px; }
+  .day-meal .meal-desc { display: none; }
+
+  .preview-meals { grid-template-columns: 1fr; }
+  .preview-meal-card { border-right: none; border-bottom: 1px solid var(--border); }
+
+  .week-complete {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .nutr-stats { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .week-grid { grid-template-columns: 1fr; }
+}

@@ -186,3 +186,17 @@
 }
 
 .no-key-banner span:nth-child(2) { flex: 1; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .messages { max-height: 45vh; padding: 14px; }
+  .quick-prompts {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .quick-prompts::-webkit-scrollbar { display: none; }
+  .quick-chip { flex-shrink: 0; }
+  .meal-list  { gap: 8px; }
+}

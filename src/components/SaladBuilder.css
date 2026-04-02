@@ -192,3 +192,22 @@
 }
 
 .dressing-recipe-btn:hover { opacity: 0.7; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .salad-layout   { grid-template-columns: 1fr; }
+  .builder-summary { position: static; }
+
+  .base-grid     { grid-template-columns: repeat(4, 1fr); }
+  .topping-grid  { grid-template-columns: repeat(3, 1fr); }
+  .dressing-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .topping-name  { font-size: 9px; }
+  .dressing-name { font-size: 9px; }
+}
+
+@media (max-width: 480px) {
+  .base-grid     { grid-template-columns: repeat(3, 1fr); }
+  .topping-grid  { grid-template-columns: repeat(2, 1fr); }
+  .dressing-grid { grid-template-columns: repeat(2, 1fr); }
+}
