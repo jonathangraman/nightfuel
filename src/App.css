@@ -830,3 +830,26 @@ body {
 @media (max-width: 768px) {
   .grocery-bar { padding: 10px 16px; }
 }
+
+/* ── SETTINGS MODAL MOBILE FIX ── */
+@media (max-width: 768px) {
+  .settings-modal {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 18px 18px 0 0 !important;
+    margin: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Make sign out button more prominent on mobile */
+  .settings-header .btn {
+    min-width: 80px;
+  }
+}
