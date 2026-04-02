@@ -1,9 +1,5 @@
-// api/claude.js - Vercel serverless function
-// Proxies requests to Anthropic API so the key never reaches the browser
-// Deploy env var: ANTHROPIC_API_KEY in Vercel dashboard
-
-export default async function handler(req, res) {
-  // Only allow POST
+// api/claude.js - Vercel serverless function (CommonJS)
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -25,11 +21,9 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-
-    // Forward the exact status and body from Anthropic
     return res.status(response.status).json(data);
   } catch (err) {
     console.error("Anthropic proxy error:", err);
     return res.status(500).json({ error: "Proxy request failed", details: err.message });
   }
-}
+};
