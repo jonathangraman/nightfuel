@@ -81,14 +81,11 @@ Always include 2 suggested sides. When seasonal produce is mentioned, use it.
 Respond ONLY with valid JSON (no markdown, no backticks) — a single meal object:
 ${buildMealSchema("Wednesday")}`;
 
-async function callAI(apiKey, systemPrompt, userMessage) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+async function callAI(systemPrompt, userMessage) {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
@@ -167,7 +164,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
     const msg = buildContext(daysToFill, alreadyPlanned) + `\nReturn exactly ${daysToFill.length} meal(s).`;
 
     try {
-      const parsed = await callAI(apiKey, WEEK_SYSTEM_PROMPT, msg);
+      const parsed = await callAI(WEEK_SYSTEM_PROMPT, msg);
       if (parsed?.meals?.length > 0) onSetPendingMeals(parsed.meals);
       else setError("Couldn't parse suggestions. Try again.");
     } catch (err) {
@@ -186,7 +183,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
     const msg = buildContext([day], alreadyPlanned) + `\nReturn a single meal object with "day": "${day}".`;
 
     try {
-      const parsed = await callAI(apiKey, DAY_SYSTEM_PROMPT, msg);
+      const parsed = await callAI(DAY_SYSTEM_PROMPT, msg);
       const meal = parsed?.meals?.[0] || parsed;
       if (meal?.name) setDaySuggestion(s => ({ ...s, [day]: { ...meal, day } }));
       else showToast("Couldn't get a suggestion. Try again.");

@@ -4,7 +4,8 @@ import AIChat from "./components/AIChat";
 import Favorites from "./components/Favorites";
 import MealBuilder from "./components/MealBuilder";
 import WeekendPlanner from "./components/WeekendPlanner";
-import { syncSave, syncLoad, isSupabaseConfigured, resetSupabaseClient, getHouseholdId } from "./lib/supabase";
+import Auth from "./components/Auth";
+import { syncSave, syncLoad, isSupabaseConfigured, resetSupabaseClient, getHouseholdId, getSupabaseClient, getCurrentUser, signOut, onAuthStateChange } from "./lib/supabase";
 import "./App.css";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -56,7 +57,9 @@ export default function App() {
 
   // Sync status
   const [syncStatus, setSyncStatus] = useState("idle");
-  const [pendingMeals, setPendingMeals] = useState(null); // survives tab switches // idle | syncing | synced | error
+  const [pendingMeals, setPendingMeals] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false); // survives tab switches // idle | syncing | synced | error
   const [lastSync, setLastSync]     = useState(null);
 
   const sbConfigured = !!(sbUrl && sbKey);
@@ -65,6 +68,17 @@ export default function App() {
   useEffect(() => { localStorage.setItem("dinnerWeek",    JSON.stringify(week));        }, [week]);
   useEffect(() => { localStorage.setItem("dinnerFavs",    JSON.stringify(favorites));   }, [favorites]);
   useEffect(() => { localStorage.setItem("dinnerHistory", JSON.stringify(mealHistory)); }, [mealHistory]);
+
+  // ── AUTH ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isSupabaseConfigured()) { setAuthChecked(true); return; }
+    getCurrentUser().then(u => { setUser(u); setAuthChecked(true); });
+    const unsub = onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+      if (event === "SIGNED_IN") pullFromCloud();
+    });
+    return unsub;
+  }, []); // eslint-disable-line
 
   // ── SYNC TO SUPABASE ─────────────────────────────────
   const pushToCloud = useCallback(async (weekData, favsData, histData) => {
@@ -184,6 +198,12 @@ export default function App() {
     : "☁ cloud on"
     : null;
 
+  // Show auth screen if Supabase is configured but user is not logged in
+  const sb = getSupabaseClient();
+  if (sb && authChecked && !user) {
+    return <Auth supabase={sb} onAuth={setUser} />;
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -204,9 +224,17 @@ export default function App() {
             {syncIndicator && (
               <span className={`sync-indicator ${syncStatus}`}>{syncIndicator}</span>
             )}
+            {user && (
+              <span className="user-pill">{user.email?.split("@")[0]}</span>
+            )}
             <button className={`nav-btn key-btn ${apiKey ? "key-set" : "key-missing"}`} onClick={openSettings}>
               ⚙ Settings
             </button>
+            {user && (
+              <button className="nav-btn" onClick={async () => { await signOut(); setUser(null); }}>
+                Sign out
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -262,26 +290,16 @@ export default function App() {
               <p className="modal-desc">Configure your API key and cloud sync. All credentials are stored in your browser only.</p>
             </div>
 
-            {/* ── AI API KEY ── */}
+            {/* ── AI API KEY (server-side) ── */}
             <div className="settings-section">
               <div className="settings-section-title">
                 <span>⚿</span> Anthropic API Key
-                {apiKey && <span className="settings-badge green">Active</span>}
+                <span className="settings-badge green">Server-side</span>
               </div>
-              {apiKey && <div className="key-masked">{apiKey.slice(0, 12)}••••••••••••{apiKey.slice(-4)}</div>}
-              <div className="key-input-row">
-                <input
-                  type={form.keyVisible ? "text" : "password"}
-                  className="key-input"
-                  value={form.apiKey}
-                  onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))}
-                  placeholder={apiKey ? "Enter new key to replace…" : "sk-ant-api03-…"}
-                />
-                <button className="key-toggle" onClick={() => setForm(f => ({ ...f, keyVisible: !f.keyVisible }))}>
-                  {form.keyVisible ? "Hide" : "Show"}
-                </button>
-              </div>
-              <p className="settings-hint">Get your key at <a href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a> → API Keys</p>
+              <p className="settings-hint">
+                Your API key is stored securely in Vercel environment variables — never in the browser.
+                To update it, go to your <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel dashboard</a> → Project → Settings → Environment Variables → <strong>ANTHROPIC_API_KEY</strong>.
+              </p>
             </div>
 
             {/* ── SUPABASE ── */}

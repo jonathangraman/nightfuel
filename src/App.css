@@ -727,3 +727,15 @@ body {
 }
 
 .no-key-banner span:last-of-type { flex: 1; }
+
+/* ── USER PILL ── */
+.user-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  white-space: nowrap;
+}
