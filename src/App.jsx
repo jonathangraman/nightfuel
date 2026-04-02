@@ -315,20 +315,21 @@ export default function App() {
           <div className="modal settings-modal" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
 
-            <div className="settings-header">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <h2 className="modal-title">Settings</h2>
-                {user && (
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    style={{ color: "var(--red)", borderColor: "var(--red)", marginTop: 4 }}
-                    onClick={async () => { await signOut(); setUser(null); setShowSettings(false); }}
-                  >
-                    Sign out
-                  </button>
-                )}
+            {/* Sign out bar - always visible at top on mobile */}
+            {user && (
+              <div className="settings-signout-bar">
+                <span className="settings-signout-email">👤 {user.email}</span>
+                <button
+                  className="btn btn-sm"
+                  style={{ background: "var(--red)", color: "#fff", border: "none" }}
+                  onClick={async () => { await signOut(); setUser(null); setShowSettings(false); }}
+                >
+                  Sign out
+                </button>
               </div>
-              {user && <p className="settings-hint" style={{ marginBottom: 4 }}>Signed in as <strong>{user.email}</strong></p>}
+            )}
+            <div className="settings-header">
+              <h2 className="modal-title">Settings</h2>
               <p className="modal-desc">Configure your keys and preferences.</p>
             </div>
 
