@@ -232,17 +232,9 @@ export default function App() {
             {syncIndicator && (
               <span className={`sync-indicator ${syncStatus}`}>{syncIndicator}</span>
             )}
-            {user && (
-              <span className="user-pill">{user.email?.split("@")[0]}</span>
-            )}
             <button className={`nav-btn key-btn ${apiKey ? "key-set" : "key-missing"}`} onClick={openSettings}>
-              ⚙ Settings
+              ⚙
             </button>
-            {user && (
-              <button className="nav-btn" onClick={async () => { await signOut(); setUser(null); }}>
-                Sign out
-              </button>
-            )}
           </nav>
         </div>
       </header>
@@ -294,8 +286,20 @@ export default function App() {
             <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
 
             <div className="settings-header">
-              <h2 className="modal-title">Settings</h2>
-              <p className="modal-desc">Configure your API key and cloud sync. All credentials are stored in your browser only.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <h2 className="modal-title">Settings</h2>
+                {user && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: "var(--red)", borderColor: "var(--red)", marginTop: 4 }}
+                    onClick={async () => { await signOut(); setUser(null); setShowSettings(false); }}
+                  >
+                    Sign out
+                  </button>
+                )}
+              </div>
+              {user && <p className="settings-hint" style={{ marginBottom: 4 }}>Signed in as <strong>{user.email}</strong></p>}
+              <p className="modal-desc">Configure your keys and preferences.</p>
             </div>
 
             {/* ── AI API KEY (server-side) ── */}
