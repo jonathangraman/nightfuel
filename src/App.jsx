@@ -213,6 +213,19 @@ export default function App() {
 
   // Show auth screen if Supabase is configured but user is not logged in
   const sb = getSupabaseClient();
+
+  // DEBUG: show config status on screen (remove after fixing)
+  const debugInfo = {
+    sbConfigured,
+    authChecked,
+    hasUser: !!user,
+    hasSb: !!sb,
+    envUrl: !!import.meta.env.VITE_SUPABASE_URL,
+    envKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+    lsUrl: !!localStorage.getItem("nf_sb_url"),
+    lsKey: !!localStorage.getItem("nf_sb_key"),
+  };
+
   if (sb && authChecked && !user) {
     return <Auth supabase={sb} onAuth={setUser} />;
   }
@@ -246,6 +259,11 @@ export default function App() {
           </nav>
         </div>
       </header>
+
+      {/* ── DEBUG BANNER - REMOVE AFTER FIX ── */}
+      <div style={{ background: "#1e293b", color: "#94a3b8", fontSize: 10, padding: "4px 12px", fontFamily: "monospace", lineHeight: 1.8 }}>
+        {Object.entries(debugInfo).map(([k,v]) => <span key={k} style={{ marginRight: 10, color: v ? "#4ade80" : "#f87171" }}>{k}:{v ? "✓" : "✗"}</span>)}
+      </div>
 
       {/* ── GROCERY BAR ── */}
       {(() => {
