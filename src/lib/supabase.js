@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Supabase credentials come from Vercel environment variables (VITE_ prefix = exposed to browser)
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || localStorage.getItem("nf_sb_url") || "";
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || localStorage.getItem("nf_sb_key") || "";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SB_URL || localStorage.getItem("nf_sb_url") || "";
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SB_KEY || localStorage.getItem("nf_sb_key") || "";
 
 let _client = null;
 
