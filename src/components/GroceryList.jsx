@@ -38,7 +38,19 @@ function parseIngredients(week, days, weekend) {
 }
 
 export default function GroceryList({ week, days, weekend, onClose }) {
-  const [items, setItems] = useState(() => parseIngredients(week, days, weekend));
+  const [items, setItems] = useState(() => {
+    const parsed = parseIngredients(week, days, weekend);
+    // Restore checked state from localStorage
+    const saved = JSON.parse(localStorage.getItem("nf_grocery_checked") || "[]");
+    const checkedSet = new Set(saved);
+    Object.keys(parsed).forEach(section => {
+      parsed[section] = parsed[section].map(item => ({
+        ...item,
+        checked: checkedSet.has(item.name.toLowerCase()),
+      }));
+    });
+    return parsed;
+  });
   const [extras, setExtras] = useState([]);
   const [newItem, setNewItem] = useState("");
   const [haveIt, setHaveIt] = useState(new Set()); // items already in pantry
@@ -52,11 +64,20 @@ export default function GroceryList({ week, days, weekend, onClose }) {
   const totalItems  = Object.values(items).flat().length + extras.length;
   const checkedCount = [...Object.values(items).flat(), ...extras].filter(i => i.checked).length;
 
+  const saveChecked = (newItems) => {
+    const checked = Object.values(newItems).flat().filter(i => i.checked).map(i => i.name.toLowerCase());
+    localStorage.setItem("nf_grocery_checked", JSON.stringify(checked));
+  };
+
   const toggle = (section, idx) => {
-    setItems(prev => ({
-      ...prev,
-      [section]: prev[section].map((item, i) => i === idx ? { ...item, checked: !item.checked } : item),
-    }));
+    setItems(prev => {
+      const next = {
+        ...prev,
+        [section]: prev[section].map((item, i) => i === idx ? { ...item, checked: !item.checked } : item),
+      };
+      saveChecked(next);
+      return next;
+    });
   };
 
   const toggleExtra = (idx) => {
@@ -81,6 +102,7 @@ export default function GroceryList({ week, days, weekend, onClose }) {
       for (const [k, v] of Object.entries(prev)) {
         next[k] = v.filter(i => !i.checked);
       }
+      localStorage.setItem("nf_grocery_checked", "[]");
       return next;
     });
     setExtras(prev => prev.filter(i => !i.checked));

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import RecipeModal from "./RecipeModal";
 import NutritionSummary from "./NutritionSummary";
-import GroceryList from "./GroceryList";
 import StarRating from "./StarRating";
 import { getCurrentSeason } from "../data/seasons";
 import "./WeekPlanner.css";
@@ -101,7 +100,7 @@ async function callAI(systemPrompt, userMessage) {
   return JSON.parse(cleaned);
 }
 
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote, weekend }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote, weekend, onOpenGrocery }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
@@ -109,7 +108,6 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
   const [daySuggestion, setDaySuggestion] = useState({});
   const [error, setError]                 = useState(null);
   const [toast, setToast]                 = useState(null);
-  const [showGrocery, setShowGrocery]     = useState(false);
   const [cookTimeFilter, setCookTimeFilter] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
   const [noteText, setNoteText] = useState("");
@@ -237,7 +235,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
             ))}
           </div>
           {filled > 0 && (
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowGrocery(true)}>🛒 Grocery List</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => onOpenGrocery?.()}>🛒 Grocery List</button>
           )}
           {filled < days.length && (
             <button className="btn btn-primary" onClick={generateWeek} disabled={generating || !!generatingDay}>
@@ -412,13 +410,12 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
             <strong>Full week planned!</strong>
             <p>Your family dinners are all set.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowGrocery(true)}>🛒 Grocery List</button>
+          <button className="btn btn-primary" onClick={() => onOpenGrocery?.()}>🛒 Grocery List</button>
         </div>
       )}
 
       {toast && <div className="planner-toast"><span>✓</span> {toast}</div>}
 
-      {showGrocery && <GroceryList week={week} days={days} weekend={weekend} onClose={() => setShowGrocery(false)} />}
 
       {editingNote && (
         <div className="modal-overlay" onClick={() => setEditingNote(null)}>

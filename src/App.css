@@ -799,3 +799,34 @@ body {
   .modal-macros { flex-wrap: wrap; }
   .macro-box    { padding: 10px 16px; }
 }
+
+/* ── GROCERY BAR ── */
+.grocery-bar {
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+  max-width: 100%;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.grocery-bar:hover { background: #235c43; }
+
+.grocery-bar-icon  { font-size: 16px; }
+.grocery-bar-label { font-size: 13px; font-weight: 700; flex: 1; }
+.grocery-bar-count {
+  font-size: 12px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.grocery-bar-arrow { font-size: 14px; opacity: 0.7; }
+
+@media (max-width: 768px) {
+  .grocery-bar { padding: 10px 16px; }
+}

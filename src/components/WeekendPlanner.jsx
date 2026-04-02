@@ -135,7 +135,9 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
       recent   ? `Recent meals to AVOID: ${recent}.` : "",
       existing ? `Already planned this weekend (avoid repeating): ${existing}.` : "",
       season.note,
-      `Give 3 distinct meal options per day — different proteins, different cuisines, different cook methods. Make them genuinely different from each other.`,
+      cookStyles.includes("any")
+        ? `Give 3 distinct meal options per day — different proteins, different cuisines, different cook methods. Make them genuinely different from each other.`
+        : `IMPORTANT: All 3 options must strictly use ${cookStyles.filter(s=>s!=="any").map(s=>COOK_STYLES.find(c=>c.id===s)?.label).join(" or ")} cooking ONLY. No exceptions. Different proteins and cuisines are fine but the cooking method must match every time.`,
     ].filter(Boolean).join("\n");
   };
 

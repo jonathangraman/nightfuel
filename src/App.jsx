@@ -5,6 +5,7 @@ import Favorites from "./components/Favorites";
 import MealBuilder from "./components/MealBuilder";
 import WeekendPlanner from "./components/WeekendPlanner";
 import Auth from "./components/Auth";
+import GroceryList from "./components/GroceryList";
 import { syncSave, syncLoad, isSupabaseConfigured, resetSupabaseClient, getHouseholdId, getSupabaseClient, getCurrentUser, signOut, onAuthStateChange } from "./lib/supabase";
 import "./App.css";
 
@@ -58,6 +59,7 @@ export default function App() {
   // Sync status
   const [syncStatus, setSyncStatus] = useState("idle");
   const [pendingMeals, setPendingMeals] = useState(null);
+  const [showGrocery, setShowGrocery] = useState(false);
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false); // survives tab switches // idle | syncing | synced | error
   const [lastSync, setLastSync]     = useState(null);
@@ -239,6 +241,24 @@ export default function App() {
         </div>
       </header>
 
+      {/* ── GROCERY BAR ── */}
+      {(() => {
+        const allMeals = [
+          ...DAYS.map(d => week[d]),
+          ...WEEKEND_DAYS.map(d => weekend[d]),
+        ].filter(Boolean);
+        const itemCount = [...new Set(allMeals.flatMap(m => m.ingredients || []))].length;
+        if (itemCount === 0) return null;
+        return (
+          <div className="grocery-bar" onClick={() => setShowGrocery(true)}>
+            <span className="grocery-bar-icon">🛒</span>
+            <span className="grocery-bar-label">Grocery List</span>
+            <span className="grocery-bar-count">{itemCount} items</span>
+            <span className="grocery-bar-arrow">→</span>
+          </div>
+        );
+      })()}
+
       <main className="main">
         {tab === "planner" && (
           <WeekPlanner
@@ -256,6 +276,7 @@ export default function App() {
             notes={notes}
             onNote={setNote}
             weekend={weekend}
+            onOpenGrocery={() => setShowGrocery(true)}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}
@@ -278,6 +299,15 @@ export default function App() {
           />
         )}
       </main>
+
+      {showGrocery && (
+        <GroceryList
+          week={week}
+          days={DAYS}
+          weekend={weekend}
+          onClose={() => setShowGrocery(false)}
+        />
+      )}
 
       {/* ── SETTINGS MODAL ── */}
       {showSettings && (
