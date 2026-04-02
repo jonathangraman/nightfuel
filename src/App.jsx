@@ -74,7 +74,13 @@ export default function App() {
   // ── AUTH ────────────────────────────────────────────────
   useEffect(() => {
     if (!isSupabaseConfigured()) { setAuthChecked(true); return; }
-    getCurrentUser().then(u => { setUser(u); setAuthChecked(true); });
+    // Check for existing session on load
+    getCurrentUser().then(u => {
+      setUser(u);
+      setAuthChecked(true);
+      if (u) pullFromCloud(); // pull immediately if already logged in
+    });
+    // Listen for auth state changes (login/logout)
     const unsub = onAuthStateChange((event, session) => {
       setUser(session?.user || null);
       if (event === "SIGNED_IN") pullFromCloud();
@@ -117,10 +123,7 @@ export default function App() {
     setLastSync(new Date());
   }, []);
 
-  // Pull from cloud on first load if Supabase is configured
-  useEffect(() => {
-    if (sbConfigured) pullFromCloud();
-  }, []); // eslint-disable-line
+  // Initial pull is now handled inside the auth effect above
 
   // Auto-push whenever data changes (debounced via useEffect)
   useEffect(() => {
