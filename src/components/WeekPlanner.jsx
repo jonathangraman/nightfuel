@@ -154,7 +154,6 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
   // ── GENERATE FULL WEEK ──────────────────────────────
   const generateWeek = async () => {
-    if (!apiKey) { onNeedKey?.(); return; }
     setGenerating(true);
     setError(null);
     onSetPendingMeals(null);
@@ -175,7 +174,6 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
   // ── GENERATE FOR ONE DAY ────────────────────────────
   const generateForDay = async (day) => {
-    if (!apiKey) { onNeedKey?.(); return; }
     setGeneratingDay(day);
     setDaySuggestion(s => ({ ...s, [day]: null }));
 

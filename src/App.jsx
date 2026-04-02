@@ -186,7 +186,7 @@ export default function App() {
   const NAV = [
     { id: "planner",   label: "Week" },
     { id: "builder",   label: "Meal Builder" },
-    { id: "ai",        label: "AI Chef" },
+    { id: "ai",        label: "Chef Claude" },
     { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
     { id: "weekend",   label: "Weekend" },
   ];

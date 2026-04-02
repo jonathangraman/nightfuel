@@ -185,7 +185,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
     <div className="aichat">
       <div>
         <h1 className="section-title">Chef Claude</h1>
-        <p className="section-sub">Tell me what you're craving and I'll find the perfect family dinner</p>
+        <p className="section-sub">Tell Chef Claude what you're craving and get the perfect family dinner</p>
       </div>
 
       <div className="chat-layout">
