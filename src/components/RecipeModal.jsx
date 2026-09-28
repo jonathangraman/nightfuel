@@ -74,6 +74,7 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
           </div>
           <h2 className="modal-title">{meal.name}</h2>
           <p className="modal-desc">{meal.description}</p>
+          {meal.recipeId && <p className="modal-desc">Cookbook recipe · {meal.servings} servings{meal.author ? ` · ${meal.author}` : ''}. {meal.sourceUrl && /^https?:\/\//i.test(meal.sourceUrl) && <a href={meal.sourceUrl} target="_blank" rel="noreferrer">Original source</a>}</p>}
 
           {/* RATING */}
           <div className="modal-rating">

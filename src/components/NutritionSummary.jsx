@@ -1,8 +1,10 @@
 import "./NutritionSummary.css";
 
 export default function NutritionSummary({ week, days }) {
-  const meals = days.map(d => week[d]).filter(Boolean);
-  if (meals.length === 0) return null;
+  const planned = days.map(d => week[d]).filter(Boolean);
+  if (planned.length === 0) return null;
+  const meals = planned.filter(m => ['calories', 'protein', 'carbs'].every(k => Number.isFinite(m[k])));
+  if (meals.length === 0) return <div className="nutrition-summary">Nutrition is not available for these recipes yet.</div>;
 
   const total = meals.reduce((acc, m) => ({
     calories: acc.calories + (m.calories || 0),
@@ -33,7 +35,7 @@ export default function NutritionSummary({ week, days }) {
     <div className="nutrition-summary">
       <div className="nutr-header">
         <div className="nutr-title">Week Nutrition</div>
-        <div className="nutr-sub">{meals.length} of {days.length} nights · avg per dinner</div>
+        <div className="nutr-sub">{meals.length} of {planned.length} planned dinners have nutrition · estimated average per serving. Recipes without nutrition are excluded.</div>
       </div>
 
       <div className="nutr-stats">

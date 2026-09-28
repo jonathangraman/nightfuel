@@ -46,7 +46,7 @@ account and includes a complete password-reset flow.
 
 ## Persistence and upgrades
 
-All current app data is stored as one versioned snapshot in `nf_week.data`, with
+Meal planning data is stored as one versioned snapshot in `nf_week.data`, with
 weekday keys retained alongside `_nightfuel` metadata. On first load, the app imports
 legacy cloud favorites/history and local-only notes/settings. If the legacy browser and cloud copies differ, the app preserves both and asks which to keep. Existing legacy rows
 and browser keys remain as recovery backups. No `nf_settings` table is required.
@@ -71,6 +71,18 @@ sides. Older saved recipes are preserved and may lack quantities.
 Optional meal photos use an Unsplash public access key entered in Settings.
 
 ## Structure
+
+## Cookbook setup and behavior
+
+Run `supabase-cookbook.sql` in the existing Supabase project's SQL editor before deploying the cookbook update. It creates `nf_recipes` with owner-only row-level security and leaves the existing meal tables untouched. There are no seeded recipes. Signed-out users cannot access recipe records.
+
+The Cookbook supports manual recipe entry/editing, cuisine and course filters (including appetizers and desserts), author search, source links and book/page references. Existing favorites can be copied into an editable draft; ingredients from those older recipes need their quantities separated manually before serving adjustments are useful. All saves require an explicit click. Failed saves retain the editor, and concurrent edits are rejected rather than overwriting newer records.
+
+Choose a serving count and weekday or weekend day to schedule a recipe snapshot. Existing planned meals are explicitly labeled as replacements. Editing a cookbook recipe later does not change an already scheduled snapshot. The current planner has one meal slot per day. Ingredient quantities scale; quantities in instruction text, cooking times, and pan sizes do not scale automatically. Grocery totals combine matching ingredient names and units; incompatible units and older free-text ingredients remain separate.
+
+“Make it healthier” uses the existing authenticated AI endpoint and opens a draft for review. Saving creates a separate recipe with original recipe/author references. It never overwrites or automatically saves the original. Nutrition is not invented for manual recipes or adaptations; recipes lacking nutrition are excluded from the nutrition summary. Link/screenshot extraction and a Discover catalog are future additions; source links in this version are references only.
+
+## Source files
 
 - `src/App.jsx`: authentication, navigation, and meal actions
 - `src/lib/useMealStore.js`: local persistence, cloud sync, conflict recovery
