@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { chefBatch001 } from '../src/data/chefBatch001';
+import { chefBatch002 } from '../src/data/chefBatch002';
 import { importId, pendingImports, sourceKey } from '../src/lib/recipeImports';
 import { validateRecipe } from '../src/lib/cookbook';
 
@@ -20,6 +21,19 @@ it('does not reimport removed recipes or manually saved source matches', () => {
   ];
   expect(pendingImports(chefBatch001, records)).toHaveLength(8);
   expect(pendingImports([...chefBatch001, ...chefBatch001], [])).toHaveLength(10);
+});
+it('adds ten Greek selections without resetting the earlier batch review history', () => {
+  expect(chefBatch002).toHaveLength(10);
+  expect(new Set([...chefBatch001, ...chefBatch002].map(r => r.importKey)).size).toBe(20);
+  for (const recipe of chefBatch002) {
+    expect(validateRecipe(recipe)).toBe(recipe);
+    expect(recipe.cuisine).toBe('Greek');
+    expect(recipe.reviewStatus).toBe('new');
+    expect(sourceKey(recipe.sourceUrl)).toBe(recipe.importKey);
+  }
+  const history = chefBatch001.map(r => ({ ...r, reviewStatus: 'removed' }));
+  expect(pendingImports(chefBatch002, history)).toEqual(chefBatch002);
+  expect(pendingImports(chefBatch002, [...history, ...chefBatch002])).toEqual([]);
 });
 it('uses repeatable owner-specific IDs to make retries safe', async () => {
   const key = chefBatch001[0].importKey;
