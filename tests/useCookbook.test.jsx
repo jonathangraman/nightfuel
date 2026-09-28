@@ -39,3 +39,23 @@ it('shows missing migration failures and does not report an empty success', asyn
   await waitFor(() => expect(result.current.loading).toBe(false));
   expect(result.current.error).toContain('one-time setup');
 });
+it('imports a batch with conflict-safe IDs and preserves returned metadata', async () => {
+  const selected = { ...recipe, sourceUrl: 'https://example.com/recipe', batchId: '001-jet-tila' };
+  const inserted = { id: 'imported', data: { ...selected, reviewStatus: 'new', importedAt: 'today' }, updated_at: 'now' };
+  query.upsert = vi.fn().mockReturnValue({ select: vi.fn().mockResolvedValue({ data: [inserted] }) });
+  const { result } = renderHook(() => useCookbook('owner'));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  await act(async () => expect(await result.current.importBatch([selected])).toBe(1));
+  expect(query.upsert).toHaveBeenCalledWith([expect.objectContaining({ user_id: 'owner', data: expect.objectContaining({ importKey: 'example.com/recipe', reviewStatus: 'new' }) })], { onConflict: 'id', ignoreDuplicates: true });
+  expect(result.current.recipes[0].batchId).toBe('001-jet-tila');
+  await act(async () => expect(await result.current.importBatch([selected])).toBe(0));
+  expect(query.upsert).toHaveBeenCalledTimes(1);
+});
+it('does not report a successful import after a database failure', async () => {
+  query.upsert = vi.fn().mockReturnValue({ select: vi.fn().mockResolvedValue({ error: new Error('Offline') }) });
+  const { result } = renderHook(() => useCookbook('owner'));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  await act(async () => expect(result.current.importBatch([{ ...recipe, sourceUrl: 'https://example.com/r' }])).rejects.toThrow('Offline'));
+  expect(result.current.recipes).toEqual([]);
+  expect(result.current.saving).toBe(false);
+});

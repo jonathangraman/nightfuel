@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getSupabaseClient } from './supabase';
 import { validateRecipe } from './cookbook';
+import { importId, pendingImports, sourceKey } from './recipeImports';
 
 export default function useCookbook(userId) {
   const [recipes, setRecipes] = useState([]);
@@ -36,5 +37,24 @@ export default function useCookbook(userId) {
       return result;
     } finally { setSaving(false); }
   };
-  return { recipes, loading, error, saving, load, save };
+  const importBatch = async batch => {
+    if (!userId || loading || error) throw new Error('Load your cookbook successfully before importing.');
+    setSaving(true);
+    try {
+      const pending = pendingImports(batch, recipes);
+      const rows = await Promise.all(pending.map(async recipe => {
+        validateRecipe(recipe);
+        const importKey = sourceKey(recipe.sourceUrl);
+        const id = await importId(userId, importKey);
+        return { id, user_id: userId, data: { ...recipe, id, importKey, importedAt: new Date().toISOString(), reviewStatus: 'new' } };
+      }));
+      if (!rows.length) return 0;
+      // Deterministic owner/source IDs plus ignoreDuplicates protect concurrent retries and removals.
+      const { data, error } = await getSupabaseClient().from('nf_recipes').upsert(rows, { onConflict: 'id', ignoreDuplicates: true }).select('id,data,updated_at');
+      if (error) throw error;
+      setRecipes(list => [...data.map(row => ({ ...row.data, id: row.id, updatedAt: row.updated_at })), ...list]);
+      return data.length;
+    } finally { setSaving(false); }
+  };
+  return { recipes, loading, error, saving, load, save, importBatch };
 }

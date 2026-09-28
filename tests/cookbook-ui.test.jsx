@@ -40,3 +40,16 @@ it('keeps the draft visible after a failed save', async () => {
   await waitFor(() => expect(screen.getAllByText('Connection lost').length).toBeGreaterThan(0));
   expect(screen.getByLabelText('Recipe name').value).toBe('Chocolate pudding');
 });
+it('removes recipes without deleting their import history and supports restoration', async () => {
+  store.recipes = [{ ...recipe, batchId: '001-jet-tila', reviewStatus: 'new' }]; show();
+  fireEvent.click(screen.getByRole('button', { name: /Chocolate pudding/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Remove from cookbook' }));
+  await waitFor(() => expect(store.save).toHaveBeenCalledWith(expect.objectContaining({ id: 'original', batchId: '001-jet-tila', reviewStatus: 'removed', removedAt: expect.any(String) })));
+  cleanup();
+  store.recipes = [{ ...recipe, batchId: '001-jet-tila', reviewStatus: 'removed' }]; show();
+  expect(screen.queryByRole('button', { name: /Chocolate pudding/ })).toBeNull();
+  fireEvent.change(screen.getByLabelText('Review status'), { target: { value: 'removed' } });
+  fireEvent.click(screen.getByRole('button', { name: /Chocolate pudding/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Restore to cookbook' }));
+  await waitFor(() => expect(store.save).toHaveBeenCalledWith(expect.objectContaining({ reviewStatus: 'kept', removedAt: null })));
+});
