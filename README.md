@@ -1,6 +1,6 @@
 # NightFuel
 
-Personal dinner planning with React, Vite, Supabase, and Claude. Includes weekday
+Personal dinner planning with React, Vite, Supabase, and OpenAI. Includes weekday
 and weekend planners, a protein/sauce/side builder, salads, recipes, favorites,
 ratings, notes, groceries, and optional Unsplash photos.
 
@@ -8,7 +8,7 @@ ratings, notes, groceries, and optional Unsplash photos.
 
 Use Node 24 (or Node >=22.12), then `npm ci`.
 Copy `.env.example` to `.env.local` and fill in your own project values.
-Never put the Anthropic secret or a Supabase service-role key in a `VITE_` variable.
+Never put the OpenAI secret or a Supabase service-role key in a `VITE_` variable.
 The Supabase public/anon key is designed to be visible in the browser; row-level
 security protects the records.
 
@@ -27,8 +27,8 @@ Set these variables for each intended environment and redeploy:
 | --- | --- |
 | `VITE_SUPABASE_URL` | Supabase project URL (also used by the server) |
 | `VITE_SUPABASE_ANON_KEY` | Public Supabase key (also used by the server) |
-| `ANTHROPIC_API_KEY` | Server-only Anthropic secret |
-| `ANTHROPIC_MODEL` | Optional model override; defaults to `claude-sonnet-4-6` |
+| `OPENAI_API_KEY` | Server-only OpenAI secret |
+| `OPENAI_MODEL` | Optional model override; defaults to `gpt-4.1-mini` |
 | `NIGHTFUEL_ALLOWED_EMAIL` | Required: your sign-in email; restricts AI access to that account |
 
 The server also accepts `SUPABASE_URL` / `SUPABASE_ANON_KEY`, and the earlier
@@ -78,5 +78,5 @@ Optional meal photos use an Unsplash public access key entered in Settings.
 - `src/lib/ai.js`: authenticated AI requests and recipe validation
 - `src/components/`: planners, builders, recipes, groceries, and sign-in UI
 - `src/data/`: local protein, sauce, salad, and seasonal catalogs
-- `api/claude.js`: authenticated Vercel server function
+- `api/ai.js`: authenticated Vercel server function
 - `tests/`: storage, UI-flow, and endpoint regression tests

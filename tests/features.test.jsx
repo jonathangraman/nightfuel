@@ -30,7 +30,7 @@ it("recovers the single-day button after an AI failure", async () => {
   expect(await screen.findByText("Try again later")).toBeTruthy();
   expect(screen.getByRole("button", { name: "✦ AI suggest" }).disabled).toBe(false);
 });
-it("starts Chef Claude without a browser API key and excludes the greeting from API history", async () => {
+it("starts NightFuel AI without a browser API key and excludes the greeting from API history", async () => {
   requestAI.mockResolvedValue("Try roast chicken tonight.");
   render(<AIChat days={["Monday"]} week={{}} favorites={[]} />);
   fireEvent.change(screen.getByRole("textbox"), { target: { value: "Chicken please" } });

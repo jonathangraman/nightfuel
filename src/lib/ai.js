@@ -4,30 +4,30 @@ export async function requestAI(system, messages, maxTokens = 8000) {
   const sb = getSupabaseClient();
   const session = sb ? await sb.auth.getSession() : null;
   const token = session?.data?.session?.access_token;
-  if (!token) throw new Error("Please sign in to use Chef Claude.");
-  const response = await fetch("/api/claude", {
+  if (!token) throw new Error("Please sign in to use NightFuel AI.");
+  const response = await fetch("/api/ai", {
     method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ system, messages, max_tokens: maxTokens }), signal: AbortSignal.timeout(65_000),
   });
   let data;
   try { data = await response.json(); }
   catch { throw new Error("The AI service is unavailable. For local development, run the Vercel development server."); }
-  if (!response.ok || data.error) throw new Error(typeof data.error === "string" ? data.error : data.error?.message || "Chef Claude could not complete the request.");
+  if (!response.ok || data.error) throw new Error(typeof data.error === "string" ? data.error : data.error?.message || "NightFuel AI could not complete the request.");
   if (data.stop_reason === "max_tokens") throw new Error("The recipe response was cut short. Try requesting fewer meals.");
-  const text = data.content?.filter(block => block.type === "text").map(block => block.text).join("\n");
-  if (!text?.trim()) throw new Error("Chef Claude returned an empty response. Try again.");
+  const text = data.text;
+  if (!text?.trim()) throw new Error("NightFuel AI returned an empty response. Try again.");
   return text;
 }
 export function parseAI(text) {
   try { return JSON.parse(text.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim()); }
-  catch { throw new Error("Chef Claude returned an incomplete recipe. Please try again."); }
+  catch { throw new Error("NightFuel AI returned an incomplete recipe. Please try again."); }
 }
 export function validateMeal(meal) {
   const strings = value => Array.isArray(value) && value.every(x => typeof x === "string");
   if (!meal || typeof meal.name !== "string" || !meal.name.trim() ||
       typeof meal.description !== "string" || !strings(meal.ingredients) || !meal.ingredients.length ||
       !Array.isArray(meal.steps) || !meal.steps.length || meal.steps.some(s => !s || typeof s.instruction !== "string" || typeof s.title !== "string")) {
-    throw new Error("Chef Claude returned an incomplete recipe. Please try again.");
+    throw new Error("NightFuel AI returned an incomplete recipe. Please try again.");
   }
   if (meal.tags != null && !strings(meal.tags)) throw new Error("The recipe tags were invalid. Please try again.");
   for (const key of ["calories", "protein", "carbs"]) {

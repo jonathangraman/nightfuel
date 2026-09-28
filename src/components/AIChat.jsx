@@ -164,8 +164,8 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
   return (
     <div className="aichat">
       <div>
-        <h1 className="section-title">Chef Claude</h1>
-        <p className="section-sub">Tell Chef Claude what you're craving and get the perfect family dinner</p>
+        <h1 className="section-title">NightFuel AI</h1>
+        <p className="section-sub">Tell NightFuel AI what you're craving and get the perfect family dinner</p>
       </div>
 
       <button className="btn btn-ghost btn-sm" disabled={loading} onClick={() => { setMessages(previous => previous.filter(message => message.initial)); setAddTarget({}); }}>New chat</button>

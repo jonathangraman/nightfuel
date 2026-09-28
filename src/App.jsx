@@ -121,7 +121,7 @@ function MealApp({ user, onSignOut }) {
   const NAV = [
     { id: "planner",   label: "Week" },
     { id: "builder",   label: "Meal Builder" },
-    { id: "ai",        label: "Chef Claude" },
+    { id: "ai",        label: "NightFuel AI" },
     { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
     { id: "weekend",   label: "Weekend" },
   ];
@@ -268,12 +268,12 @@ function MealApp({ user, onSignOut }) {
             {/* ── AI API KEY (server-side) ── */}
             <div className="settings-section">
               <div className="settings-section-title">
-                <span>⚿</span> Anthropic API Key
+                <span>⚿</span> OpenAI API Key
                 <span className="settings-badge green">Server-side</span>
               </div>
               <p className="settings-hint">
                 Your API key is stored securely in Vercel environment variables — never in the browser.
-                To update it, go to your <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel dashboard</a> → Project → Settings → Environment Variables → <strong>ANTHROPIC_API_KEY</strong>.
+                To update it, go to your <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel dashboard</a> → Project → Settings → Environment Variables → <strong>OPENAI_API_KEY</strong>.
               </p>
             </div>
 

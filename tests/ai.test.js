@@ -10,7 +10,7 @@ it("sends the current access token and surfaces string errors", async () => {
   expect(fetch.mock.calls[0][1].headers.Authorization).toBe("Bearer session");
 });
 it("rejects truncated responses before attempting to save recipes", async () => {
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ stop_reason: "max_tokens", content: [{ type: "text", text: '{"meals":[' }] }) }));
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: "The recipe response was cut short. Try requesting fewer meals." }) }));
   await expect(requestAI("system", [{ role: "user", content: "dinner" }])).rejects.toThrow("cut short");
 });
 it("parses fenced JSON and rejects structurally invalid meals", () => {
