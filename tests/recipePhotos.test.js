@@ -1,0 +1,7 @@
+import { expect, it, vi, afterEach } from 'vitest';
+import { photoResults, findRecipePhotos } from '../src/lib/recipePhotos';
+const info = { mime:'image/jpeg', thumburl:'https://upload.wikimedia.org/photo.jpg', descriptionurl:'https://commons.wikimedia.org/wiki/File:Food.jpg', extmetadata:{ Artist:{value:'<a href="https://example.com">Jane &amp; Joe</a>'}, LicenseShortName:{value:'CC BY-SA 4.0'}, LicenseUrl:{value:'https://creativecommons.org/licenses/by-sa/4.0/'} } };
+it('preserves attribution and source and labels generic photos illustrative', () => { expect(photoResults({query:{pages:{1:{title:'File:Food.jpg',imageinfo:[info]}}}})[0]).toMatchObject({imageCredit:'Jane & Joe',imageLicense:'CC BY-SA 4.0',imageIllustrative:true}); });
+it('excludes missing licensing, unsafe images and uncredited photos', () => { for (const changes of [{thumburl:'http://localhost/test.jpg'},{extmetadata:{}},{mime:'image/svg+xml'}]) expect(photoResults({query:{pages:{1:{title:'File:Food.jpg',imageinfo:[{...info,...changes}]}}}})).toEqual([]); });
+afterEach(() => vi.unstubAllGlobals());
+it('handles upstream errors and sends only the search phrase', async () => { const fetcher=vi.fn().mockResolvedValue({ok:false}); vi.stubGlobal('fetch',fetcher); await expect(findRecipePhotos('lo mein')).rejects.toThrow('unavailable'); expect(fetcher.mock.calls[0][0]).toContain('gsrsearch=lo+mein'); expect(fetcher.mock.calls[0][1].credentials).toBe('omit'); });

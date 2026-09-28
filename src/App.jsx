@@ -12,6 +12,8 @@ import { DAYS, WEEKEND_DAYS } from "./lib/mealState";
 import useMealStore from "./lib/useMealStore";
 import { groceryIngredients } from "./lib/cookbook";
 import "./App.css";
+import "./FreshTheme.css";
+import { Leaf, CalendarDays, BookOpen, Utensils, Sparkles, Heart, Sun, Settings, LogOut } from "lucide-react";
 
 const defaultWeek = () => Object.fromEntries(DAYS.map(day => [day, null]));
 const MAX_HISTORY = 30;
@@ -121,12 +123,12 @@ function MealApp({ user, onSignOut }) {
   };
 
   const NAV = [
-    { id: "planner",   label: "Week" },
-    { id: "cookbook", label: "Cookbook" },
-    { id: "builder",   label: "Meal Builder" },
-    { id: "ai",        label: "NightFuel AI" },
-    { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
-    { id: "weekend",   label: "Weekend" },
+    { id: "planner",   label: "My week", icon: CalendarDays },
+    { id: "cookbook", label: "Cookbook", icon: BookOpen },
+    { id: "builder",   label: "Meal Builder", icon: Utensils },
+    { id: "ai",        label: "NightFuel AI", icon: Sparkles },
+    { id: "favorites", icon: Heart, label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
+    { id: "weekend",   label: "Weekend", icon: Sun },
   ];
 
   const syncIndicator = sbConfigured
@@ -143,25 +145,25 @@ function MealApp({ user, onSignOut }) {
       <header className="header">
         <div className="header-inner">
           <div className="logo">
-            <span className="logo-mark">◈</span>
+            <span className="logo-mark"><Leaf size={25} strokeWidth={1.8} /></span>
             <div>
               <div className="logo-title">NightFuel</div>
-              <div className="logo-sub">weeknight meals that don't suck</div>
+              <div className="logo-sub">good food, made yours</div>
             </div>
           </div>
-          <nav className="nav">
+          <nav className="nav" aria-label="Main navigation">
             {NAV.map(t => (
-              <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
-                {t.label}
+              <button key={t.id} className={`nav-btn ${tab === t.id ? "active" : ""}`} aria-current={tab === t.id ? "page" : undefined} onClick={() => setTab(t.id)}>
+                <t.icon size={17} aria-hidden="true" /><span>{t.label}</span>
               </button>
             ))}
             {syncIndicator && (
               <span className={`sync-indicator ${syncStatus}`}>{syncIndicator}</span>
             )}
-            <button className={`nav-btn key-btn`} onClick={openSettings}>⚙</button>
+            <button className={`nav-btn key-btn`} aria-label="Settings" onClick={openSettings}><Settings size={18} /></button>
             {user && (
-              <button className="nav-btn signout-btn" onClick={async () => { await handleSignOut(); }}>
-                ↩
+              <button className="nav-btn signout-btn" aria-label="Sign out" onClick={async () => { await handleSignOut(); }}>
+                <LogOut size={18} />
               </button>
             )}
           </nav>
@@ -339,3 +341,4 @@ function MealApp({ user, onSignOut }) {
     </div>
   );
 }
+

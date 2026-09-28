@@ -6,7 +6,7 @@ export function validateRecipe(recipe) {
   if (!COURSES.includes(recipe.course)) throw new Error('Choose a course.');
   if (!Array.isArray(recipe.ingredients) || !recipe.ingredients.length || recipe.ingredients.some(i => !i || typeof i.name !== 'string' || !i.name.trim() || typeof i.unit !== 'string' || (i.quantity !== null && (!Number.isFinite(i.quantity) || i.quantity <= 0)))) throw new Error('Each ingredient needs a name and a positive quantity, or a blank quantity for “to taste”.');
   if (typeof recipe.instructions !== 'string' || !recipe.instructions.trim()) throw new Error('Add the cooking instructions.');
-  for (const field of ['description', 'author', 'cuisine', 'sourceUrl', 'sourceBook', 'notes', 'cookTime', 'imageUrl', 'imageCredit']) {
+  for (const field of ['description', 'author', 'cuisine', 'sourceUrl', 'sourceBook', 'notes', 'cookTime', 'imageUrl', 'imageCredit', 'imageSourceUrl', 'imageLicense', 'imageLicenseUrl']) {
     if (recipe[field] != null && typeof recipe[field] !== 'string') throw new Error('Recipe details must be text.');
   }
   if (recipe.imageUrl && !/^https:\/\//i.test(recipe.imageUrl) && !/^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(recipe.imageUrl)) throw new Error('Use an HTTPS photo link or upload a JPEG, PNG or WebP photo.');
@@ -46,3 +46,4 @@ export function groceryIngredients(meals) {
   // Legacy recipes use free text; do not guess units or combine them with measured ingredients.
   return [...totals.values()].map(formatIngredient).concat([...legacy]);
 }
+

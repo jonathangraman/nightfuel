@@ -150,17 +150,17 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
     : SAUCES.filter(s => s.cuisine === cuisineFilter);
 
   return (
-    <div className="mealbuilder">
+    <div className="mealbuilder"><header className="fresh-builder-heading"><span className="fresh-eyebrow">Make healthy feel easy</span><h1>Your next good meal starts here.</h1><p>Pick your protein. Add some flavor. Make it yours.</p></header>
       {/* Tab switcher */}
       <div className="mb-tabs">
         <button className={`mb-tab ${view === "builder" ? "active" : ""}`} onClick={() => setView("builder")}>
-          🍽 Meal Builder
+          Build a meal
         </button>
         <button className={`mb-tab ${view === "salad" ? "active" : ""}`} onClick={() => setView("salad")}>
-          🥗 Salad Builder
+          Build a salad
         </button>
         <button className={`mb-tab ${view === "sauces" ? "active" : ""}`} onClick={() => setView("sauces")}>
-          🫙 Sauce Library
+          Sauce library
         </button>
       </div>
 
