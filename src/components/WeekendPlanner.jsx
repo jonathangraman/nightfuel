@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { callAI, validateMeal, generateVariation } from "../lib/ai";
 import RecipeModal from "./RecipeModal";
 import StarRating from "./StarRating";
 import { getCurrentSeason } from "../data/seasons";
@@ -41,6 +42,7 @@ WEEKEND MEAL SPIRIT:
   * Asian → fried rice, steamed bao, cucumber salad, edamame, miso soup
   * Always suggest 2-3 sides that feel natural and traditional with the main dish
 
+Use quantities for 4 servings in every ingredient list, including all side ingredients. Nutrition numbers must be per serving, including sides. Include complete cooking instructions for proteins and sides.
 Respond ONLY with valid JSON (no markdown, no backticks).
 Return EXACTLY 3 meal options per requested day — the user will pick their favorite.
 Format:
@@ -83,24 +85,7 @@ Format:
 }`;
 }
 
-async function callAI(systemPrompt, userMessage) {
-  const res = await fetch("/api/claude", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 6000,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.error?.message || `HTTP ${res.status}`);
-  const raw = data.content?.[0]?.text || "";
-  return JSON.parse(raw.replace(/```json|```/g, "").trim());
-}
-
-export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear, onNeedKey, mealHistory, ratings, onRate, unsplashKey, notes, onNote }) {
+export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear, mealHistory, ratings, onRate, unsplashKey, notes, onNote, onUpdateMeal }) {
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
   const [generatingDay, setGeneratingDay] = useState(null);
@@ -110,6 +95,7 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
   const [noteText, setNoteText]           = useState("");
   const [pendingDays, setPendingDays]     = useState(null); // { day, options: [] }[]
   const [cookStyles, setCookStyles]       = useState(["any"]);
+  const [riffLoading, setRiffLoading] = useState(null);
   const season = getCurrentSeason();
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
@@ -122,7 +108,7 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
     setCookStyles(prev => {
       const without = prev.filter(s => s !== "any");
       return without.includes(id)
-        ? without.filter(s => s !== id) || ["any"]
+        ? (without.filter(s => s !== id).length ? without.filter(s => s !== id) : ["any"])
         : [...without, id];
     });
   };
@@ -149,7 +135,7 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
       const daysToFill = WEEKEND_DAYS.filter(d => !weekend[d]);
       const days = daysToFill.length ? daysToFill : WEEKEND_DAYS;
       const parsed = await callAI(buildSystemPrompt(cookStyles), buildMsg(days));
-      if (parsed?.days?.length > 0) setPendingDays(parsed.days);
+      if (Array.isArray(parsed?.days) && parsed.days.length === days.length && new Set(parsed.days.map(d => d.day)).size === days.length && parsed.days.every(d => days.includes(d.day) && Array.isArray(d.options) && d.options.length === 3)) setPendingDays(parsed.days.map(d => ({ ...d, options: d.options.map(validateMeal) })));
       else setError("Couldn't parse suggestions. Try again.");
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -164,8 +150,9 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
         buildSystemPrompt(cookStyles),
         buildMsg([day]) + `\nReturn options for "${day}" only.`
       );
-      const dayData = parsed?.days?.find(d => d.day === day) || parsed?.days?.[0];
-      if (dayData?.options?.length > 0) {
+      const dayData = parsed?.days?.find(d => d.day === day);
+      if (Array.isArray(dayData?.options) && dayData.options.length === 3) {
+        dayData.options = dayData.options.map(validateMeal);
         setPendingDays(prev => {
           const existing = prev?.filter(d => d.day !== day) || [];
           return [...existing, dayData];
@@ -245,18 +232,15 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
                       <div className="woc-riff">
                         <div className="woc-riff-label">🔀 {meal.riff.name}</div>
                         <p className="woc-riff-text">{meal.riff.twist}</p>
-                        <button className="btn btn-ghost btn-sm" style={{ marginTop: 6 }} onClick={() => {
-                          const riffMeal = {
-                            ...meal,
-                            day: dayData.day,
-                            name: meal.riff.name.replace("The Riff: ", ""),
-                            description: meal.riff.twist,
-                            tags: [...(meal.tags || []), "Riff"],
-                            _riff: true,
-                          };
-                          onAddMeal(riffMeal, dayData.day);
-                          setPendingDays(prev => prev.filter(d => d.day !== dayData.day));
-                        }}>✓ Use the riff instead</button>
+                        <button className="btn btn-ghost btn-sm" style={{ marginTop: 6 }} disabled={!!riffLoading} onClick={async () => {
+                          setRiffLoading(meal.name);
+                          try {
+                            const riffMeal = await generateVariation(meal, meal.riff.twist);
+                            onAddMeal({ ...riffMeal, day: dayData.day }, dayData.day);
+                            setPendingDays(prev => prev.filter(d => d.day !== dayData.day));
+                          } catch (err) { showToast(err.message); }
+                          finally { setRiffLoading(null); }
+                        }}>{riffLoading === meal.name ? "Creating recipe…" : "✓ Use the riff instead"}</button>
                       </div>
                     )}
                     <div className="woc-actions">
@@ -363,7 +347,7 @@ export default function WeekendPlanner({ weekend, onAddMeal, onFavorite, onClear
           favorites={[]}
           rating={ratings?.[selectedMeal?.name] || 0}
           onRate={(r) => onRate?.(selectedMeal?.name, r)}
-          unsplashKey={unsplashKey}
+          unsplashKey={unsplashKey} onUpdateMeal={onUpdateMeal}
         />
       )}
     </div>

@@ -1,140 +1,83 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import WeekPlanner from "./components/WeekPlanner";
-import AIChat from "./components/AIChat";
-import Favorites from "./components/Favorites";
-import MealBuilder from "./components/MealBuilder";
-import WeekendPlanner from "./components/WeekendPlanner";
+const AIChat = lazy(() => import("./components/AIChat"));
+const Favorites = lazy(() => import("./components/Favorites"));
+const MealBuilder = lazy(() => import("./components/MealBuilder"));
+const WeekendPlanner = lazy(() => import("./components/WeekendPlanner"));
 import Auth from "./components/Auth";
 import GroceryList from "./components/GroceryList";
-import { syncSave, syncLoad, isSupabaseConfigured, resetSupabaseClient, getHouseholdId, getSupabaseClient, getCurrentUser, signOut, onAuthStateChange } from "./lib/supabase";
+import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase";
+import { DAYS, WEEKEND_DAYS } from "./lib/mealState";
+import useMealStore from "./lib/useMealStore";
 import "./App.css";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const WEEKEND_DAYS = ["Saturday", "Sunday"];
-const defaultWeekend = () => WEEKEND_DAYS.reduce((acc, d) => ({ ...acc, [d]: null }), {});
-const defaultWeek = () => DAYS.reduce((acc, d) => ({ ...acc, [d]: null }), {});
+const defaultWeek = () => Object.fromEntries(DAYS.map(day => [day, null]));
 const MAX_HISTORY = 30;
-
 export default function App() {
+  const sb = getSupabaseClient();
+  const [user, setUser] = useState(null);
+  const [checked, setChecked] = useState(!sb);
+  const [authError, setAuthError] = useState("");
+  const [recovery, setRecovery] = useState(() => new URLSearchParams(window.location.search).has("recovery") || window.location.hash.includes("type=recovery"));
+  useEffect(() => {
+    if (!sb) return;
+    let active = true;
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      setUser(session?.user || null);
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+      setChecked(true);
+    });
+    sb.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) setAuthError(error.message);
+      else setUser(data.session?.user || null);
+      setChecked(true);
+    }).catch(err => { if (active) { setAuthError(err.message); setChecked(true); } });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, [sb]);
+  if (!checked) return <p className="main" role="status">Opening NightFuel…</p>;
+  if (sb && (!user || recovery)) return <Auth supabase={sb} recovery={recovery && !!user} initialError={authError} onRecovered={() => {
+    setRecovery(false); window.history.replaceState({}, "", window.location.pathname);
+  }} />;
+  return <MealApp key={user?.id || "guest"} user={user} onSignOut={async () => {
+    const { error } = await sb.auth.signOut();
+    if (error) throw error;
+    setUser(null);
+  }} />;
+}
+
+function MealApp({ user, onSignOut }) {
+  const store = useMealStore(user?.id);
+  const { week, favorites, mealHistory, ratings, weekend, notes, weekendNotes, unsplashKey, grocery } = store.data;
+  const setWeek = v => store.update("week", v);
+  const setFavorites = v => store.update("favorites", v);
+  const setMealHistory = v => store.update("mealHistory", v);
+  const setRatings = v => store.update("ratings", v);
+  const setWeekend = v => store.update("weekend", v);
+  const setNotes = v => store.update("notes", v);
+  const setWeekendNotes = v => store.update("weekendNotes", v);
   const [tab, setTab] = useState("planner");
-  const [week, setWeek] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerWeek")) || defaultWeek(); }
-    catch { return defaultWeek(); }
-  });
-  const [favorites, setFavorites] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerFavs")) || []; }
-    catch { return []; }
-  });
-  const [mealHistory, setMealHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerHistory")) || []; }
-    catch { return []; }
-  });
-  const [ratings, setRatings] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerRatings")) || {}; }
-    catch { return {}; }
-  });
-  const [weekend, setWeekend] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerWeekend")) || defaultWeekend(); }
-    catch { return defaultWeekend(); }
-  });
-  const [notes, setNotes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerNotes")) || {}; }
-    catch { return {}; }
-  });
-  const [weekendNotes, setWeekendNotes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("dinnerWeekendNotes")) || {}; }
-    catch { return {}; }
-  });
-
-  // Settings
-  const [apiKey, setApiKey]     = useState(() => localStorage.getItem("nf_apikey") || "");
-  const [unsplashKey, setUnsplashKey] = useState(() => localStorage.getItem("nf_unsplash_key") || "");
-  const [sbUrl, setSbUrl]       = useState(() => localStorage.getItem("nf_sb_url") || "");
-  const [sbKey, setSbKey]       = useState(() => localStorage.getItem("nf_sb_key") || "");
   const [showSettings, setShowSettings] = useState(false);
-
-  // Settings form state
-  const [form, setForm] = useState({ apiKey: "", sbUrl: "", sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
-
-  // Sync status
-  const [syncStatus, setSyncStatus] = useState("idle");
+  const [form, setForm] = useState({ unsplashKey: "", unsplashVisible: false });
   const [pendingMeals, setPendingMeals] = useState(null);
   const [showGrocery, setShowGrocery] = useState(false);
-  const [user, setUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false); // survives tab switches // idle | syncing | synced | error
-  const [lastSync, setLastSync]     = useState(null);
-
-  const sbConfigured = !!(sbUrl && sbKey);
-
-  // ── PERSIST TO LOCALSTORAGE ─────────────────────────
-  useEffect(() => { localStorage.setItem("dinnerWeek",    JSON.stringify(week));        }, [week]);
-  useEffect(() => { localStorage.setItem("dinnerFavs",    JSON.stringify(favorites));   }, [favorites]);
-  useEffect(() => { localStorage.setItem("dinnerHistory", JSON.stringify(mealHistory)); }, [mealHistory]);
-
-  // ── AUTH ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isSupabaseConfigured()) { setAuthChecked(true); return; }
-    // Check for existing session on load
-    getCurrentUser().then(u => {
-      setUser(u);
-      setAuthChecked(true);
-      if (u) pullFromCloud(); // pull immediately if already logged in
-    });
-    // Listen for auth state changes (login/logout)
-    const unsub = onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-      if (event === "SIGNED_IN") pullFromCloud();
-    });
-    return unsub;
-  }, []); // eslint-disable-line
-
-  // ── SYNC TO SUPABASE ─────────────────────────────────
-  const pushToCloud = useCallback(async (weekData, favsData, histData) => {
-    if (!isSupabaseConfigured()) return;
-    setSyncStatus("syncing");
-    const [r1, r2, r3] = await Promise.all([
-      syncSave("nf_week",      weekData),
-      syncSave("nf_favorites", favsData),
-      syncSave("nf_history",   histData),
-    ]);
-    const anyError = r1.error || r2.error || r3.error;
-    setSyncStatus(anyError ? "error" : "synced");
-    if (!anyError) setLastSync(new Date());
-  }, []);
-
-  const pullFromCloud = useCallback(async () => {
-    if (!isSupabaseConfigured()) return;
-    setSyncStatus("syncing");
-    const [r1, r2, r3] = await Promise.all([
-      syncLoad("nf_week"),
-      syncLoad("nf_favorites"),
-      syncLoad("nf_history"),
-    ]);
-    if (r1.data) { setWeek(r1.data);        localStorage.setItem("dinnerWeek",    JSON.stringify(r1.data)); }
-    if (r2.data) { setFavorites(r2.data);   localStorage.setItem("dinnerFavs",    JSON.stringify(r2.data)); }
-    if (r3.data) { setMealHistory(r3.data); localStorage.setItem("dinnerHistory", JSON.stringify(r3.data)); }
-    // Pull settings (unsplash key etc)
-    const rSettings = await syncLoad("nf_settings");
-    if (rSettings.data?.unsplashKey) {
-      localStorage.setItem("nf_unsplash_key", rSettings.data.unsplashKey);
-      setUnsplashKey(rSettings.data.unsplashKey);
-    }
-    setSyncStatus("synced");
-    setLastSync(new Date());
-  }, []);
-
-  // Initial pull is now handled inside the auth effect above
-
-  // Auto-push whenever data changes (debounced via useEffect)
-  useEffect(() => {
-    if (!sbConfigured) return;
-    const t = setTimeout(() => pushToCloud(week, favorites, mealHistory), 1500);
-    return () => clearTimeout(t);
-  }, [week, favorites, mealHistory, sbConfigured]); // eslint-disable-line
-
+  const [actionError, setActionError] = useState("");
+  const sbConfigured = isSupabaseConfigured();
+  const syncStatus = store.status;
+  const pullFromCloud = store.retry;
+  const handleSignOut = async () => {
+    try { await onSignOut(); } catch (err) { setActionError(err.message || "Sign out failed. Try again."); }
+  };
+  const updateMeal = (original, replacement) => {
+    setWeek(w => Object.fromEntries(Object.entries(w).map(([day, meal]) => [day, meal?.name === original.name ? replacement : meal])));
+    setWeekend(w => Object.fromEntries(Object.entries(w).map(([day, meal]) => [day, meal?.name === original.name ? replacement : meal])));
+    setFavorites(list => list.map(meal => meal?.name === original.name ? replacement : meal));
+  };
   // ── MEAL ACTIONS ────────────────────────────────────
   const addToWeek = (meal, day) => {
     setWeek(w => ({ ...w, [day]: meal }));
+    setNotes(n => ({ ...n, [day]: "" }));
     setMealHistory(h => {
       if (h.slice(0, 10).find(m => m.name === meal.name)) return h;
       return [{ name: meal.name, date: new Date().toISOString() }, ...h].slice(0, MAX_HISTORY);
@@ -150,73 +93,47 @@ export default function App() {
       return [...newEntries, ...h].slice(0, MAX_HISTORY);
     });
     setWeek(defaultWeek());
+    setNotes({});
+    store.update("grocery", { ...grocery, checked: [], hidden: [] });
   };
 
   const addFavorite    = (meal) => setFavorites(f => f.find(m => m.name === meal.name) ? f : [meal, ...f]);
   const rateMeal       = (name, stars) => setRatings(r => ({ ...r, [name]: stars }));
-  const addToWeekend   = (meal, day) => setWeekend(w => ({ ...w, [day]: meal }));
+  const addToWeekend = (meal, day) => {
+    setWeekend(w => ({ ...w, [day]: meal }));
+    setWeekendNotes(n => ({ ...n, [day]: "" }));
+    setMealHistory(h => [{ name: meal.name, date: new Date().toISOString() }, ...h.filter(m => m.name !== meal.name)].slice(0, MAX_HISTORY));
+  };
   const clearWeekend   = (day) => setWeekend(w => ({ ...w, [day]: null }));
   const setNote        = (day, text) => setNotes(n => ({ ...n, [day]: text }));
   const setWeekendNote = (day, text) => setWeekendNotes(n => ({ ...n, [day]: text }));
   const removeFavorite = (name) => setFavorites(f => f.filter(m => m.name !== name));
 
-  // ── SETTINGS SAVE ───────────────────────────────────
   const saveSettings = () => {
-    if (form.apiKey.trim()) {
-      if (!form.apiKey.trim().startsWith("sk-ant-")) {
-        alert("API key should start with sk-ant-");
-        return;
-      }
-      localStorage.setItem("nf_apikey", form.apiKey.trim());
-      setApiKey(form.apiKey.trim());
-    }
-    if (form.sbUrl.trim() && form.sbKey.trim()) {
-      localStorage.setItem("nf_sb_url", form.sbUrl.trim());
-      localStorage.setItem("nf_sb_key", form.sbKey.trim());
-      setSbUrl(form.sbUrl.trim());
-      setSbKey(form.sbKey.trim());
-      resetSupabaseClient();
-    }
-    if (form.unsplashKey.trim()) {
-      localStorage.setItem("nf_unsplash_key", form.unsplashKey.trim());
-      setUnsplashKey(form.unsplashKey.trim());
-      // Sync to Supabase so it works on all devices
-      syncSave("nf_settings", { unsplashKey: form.unsplashKey.trim() });
-    }
-    setForm({ apiKey: "", sbUrl: "", sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
+    store.update("unsplashKey", form.unsplashKey.trim());
     setShowSettings(false);
-    // Pull from cloud immediately after connecting
-    if (form.sbUrl.trim() && form.sbKey.trim()) {
-      setTimeout(() => pullFromCloud(), 300);
-    }
   };
-
   const openSettings = () => {
-    setForm({ apiKey: "", sbUrl: sbUrl, sbKey: "", unsplashKey: "", keyVisible: false, sbKeyVisible: false, unsplashVisible: false });
+    setForm({ unsplashKey, unsplashVisible: false });
     setShowSettings(true);
   };
 
   const NAV = [
     { id: "planner",   label: "Week" },
     { id: "builder",   label: "Meal Builder" },
-    { id: "ai",        label: "Chef Claude" },
+    { id: "ai",        label: "NightFuel AI" },
     { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
     { id: "weekend",   label: "Weekend" },
   ];
 
   const syncIndicator = sbConfigured
     ? syncStatus === "syncing" ? "☁ syncing…"
-    : syncStatus === "synced"  ? "☁ synced"
+    : syncStatus === "synced"  ? (store.dirty ? "☁ changes pending" : "☁ synced")
     : syncStatus === "error"   ? "☁ sync error"
     : "☁ cloud on"
     : null;
 
-  // Show auth screen if Supabase is configured but user is not logged in
-  const sb = getSupabaseClient();
-
-  if (sb && authChecked && !user) {
-    return <Auth supabase={sb} onAuth={setUser} />;
-  }
+  if (!store.ready) return <p className="main" role="status">Loading your meal plan…</p>;
 
   return (
     <div className="app">
@@ -240,7 +157,7 @@ export default function App() {
             )}
             <button className={`nav-btn key-btn`} onClick={openSettings}>⚙</button>
             {user && (
-              <button className="nav-btn signout-btn" onClick={async () => { await signOut(); setUser(null); }}>
+              <button className="nav-btn signout-btn" onClick={async () => { await handleSignOut(); }}>
                 ↩
               </button>
             )}
@@ -255,7 +172,7 @@ export default function App() {
           ...WEEKEND_DAYS.map(d => weekend[d]),
         ].filter(Boolean);
         const itemCount = [...new Set(allMeals.flatMap(m => m.ingredients || []))].length;
-        if (itemCount === 0) return null;
+        if (itemCount === 0 && !grocery.extras.length) return null;
         return (
           <div className="grocery-bar" onClick={() => setShowGrocery(true)}>
             <span className="grocery-bar-icon">🛒</span>
@@ -267,44 +184,52 @@ export default function App() {
       })()}
 
       <main className="main">
+        {(store.error || store.storageError || actionError) && <div className="planner-error" role="alert">
+          <p>{store.error || store.storageError || actionError}</p>
+          {store.conflict ? <>
+            <p>This device: {Object.values(week).filter(Boolean).map(m => m.name).join(", ") || "No weekday meals"}</p>
+            <p>Cloud: {Object.values(store.conflict.data.week).filter(Boolean).map(m => m.name).join(", ") || "No weekday meals"}</p>
+            <button className="btn btn-ghost" onClick={() => store.resolve(true)}>Keep this device</button>
+            <button className="btn btn-ghost" onClick={() => store.resolve(false)}>Use cloud copy</button>
+          </> : user && <button className="btn btn-ghost" onClick={store.retry} disabled={store.saving}>Retry sync</button>}
+        </div>}
+        <Suspense fallback={<p role="status">Opening…</p>}>
         {tab === "planner" && (
           <WeekPlanner
             week={week} days={DAYS} favorites={favorites}
             onAddMeal={addToWeek} onFavorite={addFavorite}
             onClear={(day) => setWeek(w => ({ ...w, [day]: null }))}
             onClearWeek={clearWeek}
-            apiKey={apiKey} onNeedKey={openSettings}
+
             mealHistory={mealHistory}
             pendingMeals={pendingMeals}
             onSetPendingMeals={setPendingMeals}
             ratings={ratings}
             onRate={rateMeal}
-            unsplashKey={unsplashKey}
+            unsplashKey={unsplashKey} onUpdateMeal={updateMeal}
             notes={notes}
             onNote={setNote}
-            weekend={weekend}
             onOpenGrocery={() => setShowGrocery(true)}
           />
         )}
         {tab === "builder"   && <MealBuilder days={DAYS} week={week} onAddToWeek={addToWeek} />}
-        {tab === "ai"        && <AIChat days={DAYS} week={week} onAddToWeek={addToWeek} onFavorite={addFavorite} favorites={favorites} apiKey={apiKey} onNeedKey={openSettings} unsplashKey={unsplashKey} />}
-        {tab === "favorites" && <Favorites favorites={favorites} days={DAYS} onRemove={removeFavorite} onAddToWeek={addToWeek} />}
+        {tab === "ai"        && <AIChat days={DAYS} week={week} onAddToWeek={addToWeek} onFavorite={addFavorite} favorites={favorites}  unsplashKey={unsplashKey} onUpdateMeal={updateMeal} />}
+        {tab === "favorites" && <Favorites favorites={favorites} days={DAYS} week={week} ratings={ratings} onRate={rateMeal} unsplashKey={unsplashKey} onUpdateMeal={updateMeal} onRemove={removeFavorite} onAddToWeek={addToWeek} />}
         {tab === "weekend" && (
           <WeekendPlanner
             weekend={weekend}
             onAddMeal={addToWeekend}
             onFavorite={addFavorite}
             onClear={clearWeekend}
-            apiKey={apiKey}
-            onNeedKey={openSettings}
             mealHistory={mealHistory}
             ratings={ratings}
             onRate={rateMeal}
-            unsplashKey={unsplashKey}
+            unsplashKey={unsplashKey} onUpdateMeal={updateMeal}
             notes={weekendNotes}
             onNote={setWeekendNote}
           />
         )}
+        </Suspense>
       </main>
 
       {showGrocery && (
@@ -312,7 +237,7 @@ export default function App() {
           week={week}
           days={DAYS}
           weekend={weekend}
-          onClose={() => setShowGrocery(false)}
+          onClose={() => setShowGrocery(false)} data={grocery} onChange={value => store.update("grocery", value)}
         />
       )}
 
@@ -329,7 +254,7 @@ export default function App() {
                 <button
                   className="btn btn-sm"
                   style={{ background: "var(--red)", color: "#fff", border: "none" }}
-                  onClick={async () => { await signOut(); setUser(null); setShowSettings(false); }}
+                  onClick={async () => { await handleSignOut(); }}
                 >
                   Sign out
                 </button>
@@ -343,12 +268,12 @@ export default function App() {
             {/* ── AI API KEY (server-side) ── */}
             <div className="settings-section">
               <div className="settings-section-title">
-                <span>⚿</span> Anthropic API Key
+                <span>⚿</span> OpenAI API Key
                 <span className="settings-badge green">Server-side</span>
               </div>
               <p className="settings-hint">
                 Your API key is stored securely in Vercel environment variables — never in the browser.
-                To update it, go to your <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel dashboard</a> → Project → Settings → Environment Variables → <strong>ANTHROPIC_API_KEY</strong>.
+                To update it, go to your <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel dashboard</a> → Project → Settings → Environment Variables → <strong>OPENAI_API_KEY</strong>.
               </p>
             </div>
 
@@ -365,7 +290,7 @@ export default function App() {
                 </p>
               ) : (
                 <p className="settings-hint">
-                  Cloud sync is not configured. Add <strong>VITE_SUPABASE_URL</strong> and <strong>VITE_SUPABASE_ANON_KEY</strong> to your 
+                  Cloud sync is not configured. Add <strong>VITE_SUPABASE_URL</strong> and <strong>VITE_SUPABASE_ANON_KEY</strong> to your
                   <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"> Vercel environment variables</a> to enable sync across devices.
                 </p>
               )}
@@ -399,7 +324,7 @@ export default function App() {
                 Save Settings
               </button>
               {sbConfigured && (
-                <button className="btn btn-ghost" onClick={pullFromCloud}>
+                <button className="btn btn-ghost" onClick={pullFromCloud} disabled={store.saving}>
                   ↓ Pull from cloud
                 </button>
               )}

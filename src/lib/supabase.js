@@ -1,71 +1,35 @@
 import { createClient } from "@supabase/supabase-js";
-
-// Supabase credentials come from Vercel environment variables (VITE_ prefix = exposed to browser)
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SB_URL || localStorage.getItem("nf_sb_url") || "";
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SB_KEY || localStorage.getItem("nf_sb_key") || "";
-
-let _client = null;
-
+function config() {
+  const env = import.meta.env;
+  return {
+    url: env.VITE_SUPABASE_URL || env.VITE_SB_URL || localStorage.getItem("nf_sb_url") || "",
+    key: env.VITE_SUPABASE_ANON_KEY || env.VITE_SB_KEY || localStorage.getItem("nf_sb_key") || "",
+  };
+}
+let client;
+export function isSupabaseConfigured() { const { url, key } = config(); return !!(url && key); }
 export function getSupabaseClient() {
-  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
-  if (!_client) _client = createClient(SUPABASE_URL, SUPABASE_KEY);
-  return _client;
+  const { url, key } = config();
+  if (!url || !key) return null;
+  return client ||= createClient(url, key);
 }
-
-export function resetSupabaseClient() { _client = null; }
-export function isSupabaseConfigured() {
-  return !!(SUPABASE_URL && SUPABASE_KEY);
-}
-
-// ── AUTH ─────────────────────────────────────────────────
-export async function getCurrentUser() {
+export async function syncLoad(table, userId) {
   const sb = getSupabaseClient();
-  if (!sb) return null;
-  const { data: { user } } = await sb.auth.getUser();
-  return user;
+  const { data, error } = await sb.from(table).select("data, updated_at").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  if (!data) return { data: null, updatedAt: null };
+  return { data: JSON.parse(data.data), updatedAt: data.updated_at };
 }
-
-export async function signOut() {
+export async function syncSave(data, userId, previousUpdatedAt) {
   const sb = getSupabaseClient();
-  if (sb) await sb.auth.signOut();
-}
-
-export function onAuthStateChange(callback) {
-  const sb = getSupabaseClient();
-  if (!sb) return () => {};
-  const { data: { subscription } } = sb.auth.onAuthStateChange(callback);
-  return () => subscription.unsubscribe();
-}
-
-// ── SYNC (user-scoped via auth) ───────────────────────────
-export async function syncSave(table, data) {
-  const sb = getSupabaseClient();
-  if (!sb) return { error: "not configured" };
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user?.id) return { error: "not authenticated" };
-  const { error } = await sb
-    .from(table)
-    .upsert({ user_id: user.id, data: JSON.stringify(data), updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-  return { error };
-}
-
-export async function syncLoad(table) {
-  const sb = getSupabaseClient();
-  if (!sb) return { data: null, error: "not configured" };
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user?.id) return { data: null, error: "not authenticated" };
-  const { data, error } = await sb
-    .from(table)
-    .select("data")
-    .eq("user_id", user.id)
-    .single();
-  if (error || !data) return { data: null, error };
-  try { return { data: JSON.parse(data.data), error: null }; }
-  catch { return { data: null, error: "parse error" }; }
-}
-
-export function getHouseholdId() {
-  let id = localStorage.getItem("nf_household_id");
-  if (!id) { id = crypto.randomUUID(); localStorage.setItem("nf_household_id", id); }
-  return id;
+  const previousTime = previousUpdatedAt ? Date.parse(previousUpdatedAt) : 0;
+  const updatedAt = new Date(Math.max(Date.now(), previousTime + 1)).toISOString();
+  const row = { user_id: userId, data: JSON.stringify(data), updated_at: updatedAt };
+  const query = previousUpdatedAt
+    ? sb.from("nf_week").update(row).eq("user_id", userId).eq("updated_at", previousUpdatedAt)
+    : sb.from("nf_week").insert(row);
+  const { data: saved, error } = await query.select("updated_at").maybeSingle();
+  if (error?.code === "23505" || (!error && !saved)) throw new Error("Your cloud plan changed on another device. Review the two copies before saving.");
+  if (error) throw error;
+  return saved.updated_at;
 }

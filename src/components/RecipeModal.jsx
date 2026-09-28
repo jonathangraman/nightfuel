@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { generateVariation } from "../lib/ai";
 import StarRating from "./StarRating";
 import "./RecipeModal.css";
 
-export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, days, week, favorites, rating, onRate, unsplashKey }) {
+export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, days, week, favorites, rating, onRate, unsplashKey, onUpdateMeal }) {
+  const [variationLoading, setVariationLoading] = useState(false);
+  const [variationError, setVariationError] = useState("");
+  const [photoCredit, setPhotoCredit] = useState(meal._photoCredit || null);
   const [activeVariation, setActiveVariation] = useState(null);
   const [photo, setPhoto]       = useState(meal._photo || null);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -24,11 +28,14 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
         `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape&content_filter=high`,
         { headers: { Authorization: `Client-ID ${unsplashKey}` } }
       );
+      if (!res.ok) throw new Error("Photo search failed");
       const data = await res.json();
       const url = data.results?.[0]?.urls?.regular;
       if (url) {
         setPhoto(url);
-        meal._photo = url;
+        const credit = { name: data.results[0].user.name, url: data.results[0].user.links.html };
+        setPhotoCredit(credit);
+        onUpdateMeal?.(meal, { ...meal, _photo: url, _photoCredit: credit });
       } else {
         setPhotoError("No photo found for this meal.");
       }
@@ -49,16 +56,17 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
         ) : (
           <div className="recipe-photo-placeholder">
             {photoLoading ? (
-              <div className="photo-loading"><span className="spinner-dark" /> Generating photo…</div>
+              <div className="photo-loading"><span className="spinner-dark" /> Finding photo…</div>
             ) : (
               <button className="photo-generate-btn" onClick={generatePhoto} disabled={!unsplashKey}>
-                📷 Generate photo
+                📷 Find photo
               </button>
             )}
             {photoError && <span className="photo-error">{photoError}</span>}
           </div>
         )}
 
+        {photoCredit && <p className="settings-hint">Photo by <a href={photoCredit.url} target="_blank" rel="noreferrer">{photoCredit.name}</a> on <a href="https://unsplash.com" target="_blank" rel="noreferrer">Unsplash</a></p>}
         <div className="modal-header">
           <div className="modal-meta">
             {meal.tags?.map(t => <span key={t} className={`tag tag-${tagColor(t)}`}>{t}</span>)}
@@ -70,7 +78,7 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
           {/* RATING */}
           <div className="modal-rating">
             <span className="modal-rating-label">Your rating:</span>
-            <StarRating value={rating || 0} onChange={onRate} size="md" />
+            <StarRating value={rating || 0} onChange={onRate} readonly={!onRate} size="md" />
           </div>
 
           <div className="modal-macros">
@@ -98,16 +106,19 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
                 <div className="variation-detail-label">{meal.variations[activeVariation].label}</div>
                 <p className="variation-detail-text">{meal.variations[activeVariation].suggestion}</p>
                 {onFavorite && (
-                  <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => {
-                    const variantMeal = { ...meal, name: `${meal.name} (${meal.variations[activeVariation].label})`, description: meal.variations[activeVariation].suggestion };
-                    onFavorite(variantMeal);
-                  }}>♡ Save this variation</button>
+                  <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} disabled={variationLoading} onClick={async () => {
+                    setVariationLoading(true); setVariationError("");
+                    try { onFavorite(await generateVariation(meal, meal.variations[activeVariation].suggestion)); }
+                    catch (err) { setVariationError(err.message); }
+                    finally { setVariationLoading(false); }
+                  }}>{variationLoading ? "Creating recipe…" : "♡ Create & save variation"}</button>
                 )}
               </div>
             )}
           </div>
         )}
 
+        {variationError && <p className="planner-error" role="alert">{variationError}</p>}
         <div className="modal-body">
           <div className="modal-col">
             <h3 className="col-title">Ingredients</h3>
@@ -132,7 +143,7 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
 
             <div className="modal-actions">
               {onFavorite && (
-                <button className={`btn ${isFavorited ? "btn-ghost saved" : "btn-ghost"}`} onClick={() => onFavorite(meal)}>
+                <button className={`btn ${isFavorited ? "btn-ghost saved" : "btn-ghost"}`} onClick={() => onFavorite({ ...meal, _photo: photo, _photoCredit: photoCredit })}>
                   {isFavorited ? "♥ Saved" : "♡ Save meal"}
                 </button>
               )}
@@ -143,7 +154,7 @@ export default function RecipeModal({ meal, onClose, onFavorite, onAddToWeek, da
                 <div className="add-label">Add to week:</div>
                 <div className="day-chips">
                   {unplannedDays.map(d => (
-                    <button key={d} className="day-chip" onClick={() => { onAddToWeek(meal, d); onClose(); }}>{d}</button>
+                    <button key={d} className="day-chip" onClick={() => { onAddToWeek({ ...meal, _photo: photo, _photoCredit: photoCredit }, d); onClose(); }}>{d}</button>
                   ))}
                 </div>
               </div>

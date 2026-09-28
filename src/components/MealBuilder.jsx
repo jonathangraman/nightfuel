@@ -8,7 +8,7 @@ import "./MealBuilder.css";
 const CURRENT_MONTH = new Date().getMonth() + 1;
 
 // Grouped for display
-export const SIDE_GROUPS = [
+const SIDE_GROUPS = [
   {
     label: "🥦 Vegetables",
     sides: [
@@ -109,7 +109,6 @@ export default function MealBuilder({ days, week, onAddToWeek }) {
   const [addDay, setAddDay] = useState(null);
   const [addedToDay, setAddedToDay] = useState(null);
 
-  const unplannedDays = days.filter(d => !week[d]);
 
   // ── Nutrition totals ─────────────────────────────────
   const totals = {
