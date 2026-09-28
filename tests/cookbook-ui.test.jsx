@@ -53,3 +53,22 @@ it('removes recipes without deleting their import history and supports restorati
   fireEvent.click(screen.getByRole('button', { name: 'Restore to cookbook' }));
   await waitFor(() => expect(store.save).toHaveBeenCalledWith(expect.objectContaining({ reviewStatus: 'kept', removedAt: null })));
 });
+it('groups cuisines by default and shows review status on cards', () => {
+  store.recipes = [{ ...recipe, reviewStatus: 'new' }, { ...recipe, id: 'two', name: 'Noodles', cuisine: 'Chinese', reviewStatus: 'kept' }]; show();
+  expect(screen.getByRole('region', { name: 'American recipes' })).toBeTruthy();
+  expect(screen.getByRole('region', { name: 'Chinese recipes' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: /Needs review.*Chocolate pudding/ })).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /Reviewed · kept 1/ }));
+  expect(screen.queryByRole('button', { name: /Chocolate pudding/ })).toBeNull();
+  expect(screen.getByRole('button', { name: /Noodles/ })).toBeTruthy();
+});
+it('saves a credited photo with a recipe and keeps review history', async () => {
+  store.recipes = [{ ...recipe, reviewStatus: 'kept' }]; show();
+  fireEvent.click(screen.getByRole('button', { name: /Chocolate pudding/ }));
+  expect(screen.getByRole('heading', { name: "Let's cook" })).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Edit recipe' }));
+  fireEvent.change(screen.getByLabelText('Or photo URL'), { target: { value: 'https://example.com/pudding.jpg' } });
+  fireEvent.change(screen.getByLabelText('Photo credit'), { target: { value: 'My kitchen' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save to my cookbook' }));
+  await waitFor(() => expect(store.save).toHaveBeenCalledWith(expect.objectContaining({ imageUrl: 'https://example.com/pudding.jpg', imageCredit: 'My kitchen', reviewStatus: 'kept' })));
+});
