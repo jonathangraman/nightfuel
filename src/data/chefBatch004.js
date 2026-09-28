@@ -1,0 +1,36 @@
+import { chefEntry } from './chefEntry.js';
+const e = chefEntry('004-jacques-pepin', 'Jacques Pépin', 'French');
+const p = path => `https://www.pbs.org/wnet/americanmasters/${path}/`;
+const k = path => `https://ww2.kqed.org/essentialpepin/2011/09/${path}/`;
+export const chefBatch004 = [
+  e('Eggs Jeannette','Appetizers',4,'https://www.pbs.org/food/recipes/jacques-pepins-les-oeufs-jeannette',
+    [[6,'','jumbo eggs'],[1,'tsp','garlic'],[2,'tbsp','parsley'],[2,'tbsp','whole milk'],[0.25,'tsp','salt'],[0.25,'tsp','black pepper'],[2,'tbsp','vegetable oil'],[4,'tbsp','olive oil'],[1,'tbsp','Dijon mustard'],[2,'tbsp','water']],
+    'Hard-boil eggs, cool, peel and halve. Mash yolks with garlic, parsley, milk and seasoning. Refill whites, reserving a few tablespoons filling.\nBrown eggs filling-side down in vegetable oil. Whisk reserved filling with olive oil, mustard and water; spoon over warm eggs.','Milk and dressing water each range from 2–3 tablespoons in the source.'),
+  e('Seafood Omelet','Main Dishes',2,p('jacques-pepin-makes-a-seafood-omelet/23423'),
+    [[2,'tbsp','butter'],[5,'','medium shrimp'],[3,'','medium scallops'],[2,'','scallions'],[0.25,'cup','mushrooms'],[null,'','salt and pepper'],[5,'','eggs'],[3,'tbsp','chives'],[2,'tbsp','heavy cream'],[1,'tsp','olive oil']],
+    'Sauté cut seafood, scallions and mushrooms in butter; season. Beat eggs with chives, cream and seasoning. Pour over seafood and stir gently as curds form. When set, fold into thirds; briefly brown with olive oil and serve.','Source cream range: 2–3 tablespoons.'),
+  e('Country Omelet','Main Dishes',2,p('jacques-pepin-makes-a-country-omelet/23411'),
+    [[1,'','potato, about 8 oz'],[0.5,'','onion'],[2,'tbsp','butter'],[2,'tbsp','olive oil'],[null,'','salt and pepper'],[4,'','eggs'],[1/3,'cup','Gruyère'],[2,'tbsp','chives'],[1,'','tomato']],
+    'Sauté thinly sliced potato and onion in butter and oil, covered, until tender. Beat eggs with cheese, chives and seasoning; stir into vegetables until mostly set. Top with tomato slices and finish under the broiler in an oven-safe skillet.'),
+  e('Darphin Potatoes','Sides',4,k('23/darphin-potatoes'),
+    [[3,'','baking potatoes, about 8 oz each'],[2,'tbsp','corn oil'],[1,'tbsp','butter'],[4,'','scallions'],[0.5,'tsp','salt'],[0.25,'tsp','black pepper']],
+    'Peel and coarsely grate potatoes; squeeze out liquid. Sauté with scallions and seasoning in oil and butter. Press into a cake, cover and cook gently about 12 minutes. Carefully turn and cook the other side about ten minutes.'),
+  e('Baked Apples Bon Femme','Desserts',6,k('17/good-lady-apples-bon-femme'),
+    [[6,'','large apples'],[1/3,'cup','apricot jam'],[1/3,'cup','maple syrup'],[3,'tbsp','unsalted butter']],
+    'Core apples and lightly score a ring through the skin around each. Arrange in a baking dish, add jam and syrup, and dot with butter. Bake at 375°F about one hour, basting halfway. Serve lukewarm.'),
+  e('Poached Striped Bass in Vegetable Broth','Main Dishes',4,k('19/nage-courte'),
+    [[4,'strips','lemon zest'],[1,'','leek'],[1,'','carrot'],[0.5,'cup','celery'],[1,'','red onion'],[5,'cloves','garlic'],[0.75,'cup','water'],[0.75,'cup','white wine'],[2,'tbsp','olive oil'],[2,'tbsp','butter'],[1,'tsp','salt'],[4,'','striped bass fillets, 6 oz each'],[0.25,'tsp','black pepper']],
+    'Cut vegetables and zest into thin strips. Simmer with wine, water, oil, butter and salt, covered, four minutes. Add fish and gently poach, then rest covered until cooked through. Serve with hot vegetables and broth.','Source permits similarly sized snapper or sea bass fillets.'),
+  e('Cold Tomato-Cucumber Soup','Soups',2,p('jacques-pepin-makes-cold-tomato-cucumber-soup/19435'),
+    [[2,'cups','peeled seeded cucumber'],[1,'','large tomato'],[1/3,'cup','onion'],[1,'tbsp','jalapeño'],[1,'tsp','salt'],[null,'','optional Tabasco'],[1,'tbsp','rice vinegar'],[0.5,'cup','water'],[1.5,'cups','Greek yogurt'],[0.25,'cup','olive oil'],[1/3,'cup','basil']],
+    'Seed and chop tomato. Blend tomato, onion, jalapeño and water; add cucumber, seasoning and vinegar. Blend with yogurt and oil, strain if desired, and chill. Garnish with basil.','Source serves 2–4; scaling uses two generous portions.'),
+  e('Onion Soup Gratinée','Soups',2,p('jacques-pepin-makes-onion-soup-gratinee/19360'),
+    [[1,'tbsp','olive oil'],[0.5,'tbsp','butter'],[1,'','large onion'],[3,'cups','chicken stock'],[null,'','salt and pepper'],[10,'slices','baguette'],[1.5,'cups','Gruyère']],
+    'Caramelize chopped onion in oil and butter. Add stock and seasoning; simmer five minutes. Place toasted baguette and some cheese in ovenproof soup bowls. Add soup and remaining cheese. Bake at 400°F until bubbling and golden, about 25–30 minutes.','Source allows 10–12 bread slices; let hot bowls cool briefly before serving.'),
+  e('Sautéed Brussels Sprouts','Sides',2,p('jacques-pepin-makes-sauteed-brussels-sprouts/19365'),
+    [[1,'tbsp','olive oil'],[1,'tbsp','safflower oil'],[8,'oz','Brussels sprouts'],[null,'','salt and pepper']],
+    'Slice sprouts thinly. Heat oils in a skillet, add sprouts and season. Toss, cover and cook over medium-high heat until crisp-tender with browned edges, about 2–3 minutes.','Source serves 2–3; scaling uses two.'),
+  e('Crêpes with Jam','Desserts',6,p('jacques-pepin-makes-easy-and-delicious-crepes/23427'),
+    [[1/3,'cup','flour'],[0.5,'cup','milk'],[1,'','egg'],[null,'','salt'],[0.5,'tsp','sugar'],[2,'tbsp','water, if needed'],[1,'tbsp','butter'],[null,'','apricot jam'],[null,'','sugar for sprinkling']],
+    'Melt butter in a small nonstick skillet. Whisk flour, egg, half the milk, salt and sugar until smooth; add remaining milk, optional water and melted butter. Cook thin layers of batter in the skillet, turning once. Fill with jam and sprinkle with sugar.','Yield counts individual crêpes.', 'crêpes'),
+];
