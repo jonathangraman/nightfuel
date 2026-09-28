@@ -5,11 +5,11 @@ import { chefBatches } from '../src/data/chefBatches';
 import { importId, pendingImports, sourceKey } from '../src/lib/recipeImports';
 import { validateRecipe, recipeToMeal } from '../src/lib/cookbook';
 
-it('provides ten new collections of ten valid, distinct recipes with scalable groceries', () => {
+it('provides collections of ten valid, distinct recipes with scalable groceries', () => {
   const newBatches = chefBatches.slice(2);
-  expect(newBatches).toHaveLength(10);
+  expect(newBatches).toHaveLength(11);
   const all = chefBatches.flatMap(b => b.recipes);
-  expect(new Set(all.map(r => r.importKey)).size).toBe(120);
+  expect(new Set(all.map(r => r.importKey)).size).toBe(130);
   for (const batch of newBatches) {
     expect(batch.recipes).toHaveLength(10);
     for (const r of batch.recipes) {
@@ -18,11 +18,18 @@ it('provides ten new collections of ten valid, distinct recipes with scalable gr
       expect(r.reviewStatus).toBe('new');
       expect(r.importKey).toBe(sourceKey(r.sourceUrl));
       const meal = recipeToMeal(r, r.servings * 2);
-      expect(meal.ingredientItems).toEqual(r.ingredients.map(i => ({ ...i, quantity: i.quantity === null ? null : i.quantity * 2 })));
+      expect(meal.ingredientItems).toHaveLength(r.ingredients.length);
+      meal.ingredientItems.forEach((item, index) => {
+        const original = r.ingredients[index];
+        expect(item.name).toBe(original.name);
+        expect(item.unit).toBe(original.unit);
+        if (original.quantity === null) expect(item.quantity).toBeNull();
+        else expect(item.quantity).toBeCloseTo(original.quantity * 2, 10);
+      });
     }
   }
   const earlier = [...chefBatch001, ...chefBatch002].map(r => ({ ...r, reviewStatus: 'removed' }));
-  expect(pendingImports(all, earlier)).toHaveLength(100);
+  expect(pendingImports(all, earlier)).toHaveLength(110);
   expect(pendingImports(all, all)).toEqual([]);
 });
 
