@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { requestAI, parseAI, validateMeal } from "../lib/ai";
 import RecipeModal from "./RecipeModal";
 import "./AIChat.css";
 import { getCurrentSeason } from "../data/seasons";
@@ -67,12 +68,13 @@ When the user asks for meal ideas, respond ONLY with valid JSON (no markdown, no
 
 For follow-up questions or conversation, respond as plain text (not JSON).
 Always suggest 3-4 meals unless specified otherwise.
-Ingredient lists: 5-8 items. Steps: 3-5 instructions. Variations: always include exactly 3, covering protein swap, sauce/flavor change, and vegetable swap.`;
+Ingredient lists: include quantities for 4 servings and all ingredients for sides. Nutrition is estimated per serving including sides. Steps: 3-5 instructions. Variations: always include exactly 3, covering protein swap, sauce/flavor change, and vegetable swap.`;
 
-export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites, apiKey, onNeedKey, unsplashKey }) {
+export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites, unsplashKey, onUpdateMeal }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
+      initial: true,
       type: "text",
       content: "Hey! 👋 I'm your AI dinner coach. Tell me what you're in the mood for — a cuisine, an ingredient you have, how much time you have, or just say \"surprise me\" and I'll pick something your family will love.",
     },
@@ -94,7 +96,9 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
 
     try {
       const season = getCurrentSeason();
-      const apiMessages = newMessages.map(m => ({
+      const history = newMessages.filter(m => !m.initial && !m.error).slice(-20);
+      while (history[0]?.role !== "user") history.shift();
+      const apiMessages = history.map(m => ({
         role: m.role,
         content: m.rawContent || m.content,
       }));
@@ -109,43 +113,18 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
         };
       }
 
-      if (!apiKey) {
-        setLoading(false);
-        onNeedKey?.();
-        return;
-      }
-
-      const res = await fetch("/api/claude", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
-          system: SYSTEM_PROMPT,
-          messages: apiMessages,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        const msg = data.error?.message || `HTTP ${res.status}`;
-        throw new Error(msg);
-      }
-      const raw = data.content?.[0]?.text || "";
+      const raw = await requestAI(SYSTEM_PROMPT, apiMessages);
 
       let parsed = null;
-      try {
-        const cleaned = raw.replace(/```json|```/g, "").trim();
-        parsed = JSON.parse(cleaned);
-      } catch (_) {}
+      if (/^\s*(?:```|[[{])/.test(raw)) parsed = parseAI(raw);
 
-      if (parsed?.meals) {
+      if (parsed) {
+        if (!Array.isArray(parsed.meals) || !parsed.meals.length) throw new Error("No meal suggestions were returned. Please try again.");
+        parsed.meals = parsed.meals.map(validateMeal);
         setMessages(prev => [...prev, {
           role: "assistant",
           type: "meals",
-          content: parsed.message || "Here are some ideas!",
+          content: typeof parsed.message === "string" ? parsed.message : "Here are some ideas!",
           meals: parsed.meals,
           rawContent: raw,
         }]);
@@ -161,6 +140,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
       setMessages(prev => [...prev, {
         role: "assistant",
         type: "text",
+        error: true,
         content: `Error: ${err.message || "Something went wrong. Check your API key."}`,
       }]);
     }
@@ -188,6 +168,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
         <p className="section-sub">Tell Chef Claude what you're craving and get the perfect family dinner</p>
       </div>
 
+      <button className="btn btn-ghost btn-sm" disabled={loading} onClick={() => { setMessages(previous => previous.filter(message => message.initial)); setAddTarget({}); }}>New chat</button>
       <div className="chat-layout">
         <div className="chat-main">
           <div className="messages">
@@ -215,11 +196,11 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
                               {meal.carbs && <span><strong>{meal.carbs}g</strong> carbs</span>}
                             </div>
                             <div className="meal-actions">
-                              <button className="btn btn-primary btn-sm" onClick={() => setAddTarget(t => ({ ...t, [mi]: !t[mi] }))}>+ Add to week</button>
+                              <button className="btn btn-primary btn-sm" onClick={() => setAddTarget(t => ({ ...t, [`${i}-${mi}`]: !t[`${i}-${mi}`] }))}>+ Add to week</button>
                               <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMeal(meal)}>View recipe</button>
                               <button className="btn btn-ghost btn-sm" onClick={() => onFavorite(meal)}>♡ Save</button>
                             </div>
-                            {addTarget[mi] && (
+                            {addTarget[`${i}-${mi}`] && (
                               <div className="day-picker">
                                 <span className="day-picker-label">Pick a day:</span>
                                 {unplannedDays.length === 0
@@ -227,7 +208,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
                                   : unplannedDays.map(d => (
                                     <button key={d} className="day-chip" onClick={() => {
                                       onAddToWeek(meal, d);
-                                      setAddTarget(t => ({ ...t, [mi]: false }));
+                                      setAddTarget(t => ({ ...t, [`${i}-${mi}`]: false }));
                                     }}>{d}</button>
                                   ))
                                 }
@@ -254,13 +235,6 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
             )}
           </div>
 
-          {!apiKey && (
-            <div className="no-key-banner">
-              <span>⚿</span>
-              <span>Add your Anthropic API key to use Chef Claude</span>
-              <button className="btn btn-primary btn-sm" onClick={onNeedKey}>Add Key</button>
-            </div>
-          )}
           <div className="chat-input-area">
             <div className="quick-prompts">
               {quickPrompts.map(q => (
@@ -293,7 +267,7 @@ export default function AIChat({ days, week, onAddToWeek, onFavorite, favorites,
           days={days}
           week={week}
           favorites={favorites}
-          unsplashKey={unsplashKey}
+          unsplashKey={unsplashKey} onUpdateMeal={onUpdateMeal}
         />
       )}
     </div>

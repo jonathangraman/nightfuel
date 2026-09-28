@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./GroceryList.css";
 
 const SECTIONS = {
@@ -37,76 +37,33 @@ function parseIngredients(week, days, weekend) {
   return grouped;
 }
 
-export default function GroceryList({ week, days, weekend, onClose }) {
-  const [items, setItems] = useState(() => {
-    const parsed = parseIngredients(week, days, weekend);
-    // Restore checked state from localStorage
-    const saved = JSON.parse(localStorage.getItem("nf_grocery_checked") || "[]");
-    const checkedSet = new Set(saved);
-    Object.keys(parsed).forEach(section => {
-      parsed[section] = parsed[section].map(item => ({
-        ...item,
-        checked: checkedSet.has(item.name.toLowerCase()),
-      }));
-    });
-    return parsed;
-  });
-  const [extras, setExtras] = useState([]);
+export default function GroceryList({ week, days, weekend, onClose, data, onChange }) {
   const [newItem, setNewItem] = useState("");
-  const [haveIt, setHaveIt] = useState(new Set()); // items already in pantry
-
-  const toggleHaveIt = (name) => setHaveIt(prev => {
-    const next = new Set(prev);
-    next.has(name) ? next.delete(name) : next.add(name);
-    return next;
-  });
-
-  const totalItems  = Object.values(items).flat().length + extras.length;
-  const checkedCount = [...Object.values(items).flat(), ...extras].filter(i => i.checked).length;
-
-  const saveChecked = (newItems) => {
-    const checked = Object.values(newItems).flat().filter(i => i.checked).map(i => i.name.toLowerCase());
-    localStorage.setItem("nf_grocery_checked", JSON.stringify(checked));
+  const items = parseIngredients(week, days, weekend);
+  const names = new Set(Object.values(items).flat().map(item => item.name.toLowerCase().trim()));
+  for (const name of data.extras) {
+    if (!names.has(name.toLowerCase().trim())) items[categorize(name)].push({ name });
+  }
+  for (const section of Object.keys(items)) {
+    items[section] = items[section].filter(item => !data.hidden.includes(item.name.toLowerCase().trim()))
+      .map(item => ({ ...item, checked: data.checked.includes(item.name.toLowerCase().trim()) }));
+  }
+  const haveIt = new Set(data.haveIt);
+  const toggleHaveIt = name => onChange(previous => ({ ...previous, haveIt: previous.haveIt.includes(name) ? previous.haveIt.filter(n => n !== name) : [...previous.haveIt, name] }));
+  const totalItems = Object.values(items).flat().length;
+  const checkedCount = Object.values(items).flat().filter(item => item.checked).length;
+  const toggle = (section, index) => {
+    const name = items[section][index].name.toLowerCase().trim();
+    onChange(previous => ({ ...previous, checked: previous.checked.includes(name) ? previous.checked.filter(n => n !== name) : [...previous.checked, name] }));
   };
-
-  const toggle = (section, idx) => {
-    setItems(prev => {
-      const next = {
-        ...prev,
-        [section]: prev[section].map((item, i) => i === idx ? { ...item, checked: !item.checked } : item),
-      };
-      saveChecked(next);
-      return next;
-    });
-  };
-
-  const toggleExtra = (idx) => {
-    setExtras(prev => prev.map((item, i) => i === idx ? { ...item, checked: !item.checked } : item));
-  };
-
   const addExtra = () => {
-    const trimmed = newItem.trim();
-    if (!trimmed) return;
-    const cat = categorize(trimmed);
-    // Add to the right section
-    setItems(prev => ({
-      ...prev,
-      [cat]: [...prev[cat], { name: trimmed, checked: false }],
-    }));
+    const name = newItem.trim();
+    if (!name) return;
+    onChange(previous => ({ ...previous, hidden: previous.hidden.filter(n => n !== name.toLowerCase()), extras: [...new Set([...previous.extras, name])] }));
     setNewItem("");
   };
-
-  const clearChecked = () => {
-    setItems(prev => {
-      const next = {};
-      for (const [k, v] of Object.entries(prev)) {
-        next[k] = v.filter(i => !i.checked);
-      }
-      localStorage.setItem("nf_grocery_checked", "[]");
-      return next;
-    });
-    setExtras(prev => prev.filter(i => !i.checked));
-  };
+  const clearChecked = () => onChange(previous => ({ ...previous, hidden: [...new Set([...previous.hidden, ...previous.checked])],
+    extras: previous.extras.filter(name => !previous.checked.includes(name.toLowerCase().trim())), checked: [] }));
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -123,6 +80,7 @@ export default function GroceryList({ week, days, weekend, onClose }) {
           )}
         </div>
 
+        <button className="btn btn-ghost btn-sm" onClick={() => onChange({ checked: [], hidden: [], haveIt: [], extras: data.extras })}>Reset checkmarks & restore items</button>
         <div className="grocery-progress">
           <div className="grocery-progress-bar" style={{ width: `${totalItems ? (checkedCount / totalItems) * 100 : 0}%` }} />
         </div>
@@ -138,6 +96,7 @@ export default function GroceryList({ week, days, weekend, onClose }) {
                   <div key={idx} className={`grocery-item ${item.checked ? "checked" : ""} ${haveIt.has(item.name) ? "have-it" : ""}`}>
                     <input
                       type="checkbox"
+                      aria-label={item.name}
                       checked={item.checked}
                       onChange={() => toggle(key, idx)}
                       className="grocery-checkbox"

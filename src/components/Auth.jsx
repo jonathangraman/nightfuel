@@ -1,103 +1,54 @@
 import { useState } from "react";
 import "./Auth.css";
 
-export default function Auth({ supabase }) {
-  const [mode, setMode]           = useState("login"); // "login" | "signup" | "reset"
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
-  const [message, setMessage]     = useState(null);
-  const [showPass, setShowPass]   = useState(false);
-
-  const handleSubmit = async () => {
-    if (!email.trim() || (!password.trim() && mode !== "reset")) return;
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (error) setError(error.message);
-    } else if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({ email: email.trim(), password });
-      if (error) setError(error.message);
-      else setMessage("Account created! Check your email to confirm, then sign in.");
-    } else if (mode === "reset") {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin,
-      });
-      if (error) setError(error.message);
-      else setMessage("Password reset email sent — check your inbox.");
+export default function Auth({ supabase, recovery = false, onRecovered, initialError = "" }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(initialError);
+  const [message, setMessage] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const reset = !recovery && mode === "reset";
+  const submit = async event => {
+    event.preventDefault();
+    if (loading) return;
+    setError(""); setMessage("");
+    if (recovery && (password.length < 8 || password !== confirmation)) {
+      setError("Use at least 8 characters and enter the same password twice."); return;
     }
-
-    setLoading(false);
+    setLoading(true);
+    try {
+      if (recovery) {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        onRecovered();
+      } else if (reset) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/?recovery=1` });
+        if (error) throw error;
+        setMessage("Password reset email sent — check your inbox.");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+      }
+    } catch (err) { setError(err.message || "Could not connect. Please try again."); }
+    finally { setLoading(false); }
   };
-
-  return (
-    <div className="auth-screen">
-      <div className="auth-card">
-        <div className="auth-logo">
-          <span className="auth-logo-mark">◈</span>
-          <div className="auth-logo-title">NightFuel</div>
-          <div className="auth-logo-sub">weeknight meals that don't suck</div>
-        </div>
-
-        <div className="auth-tabs">
-          <button className={`auth-tab ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setError(null); setMessage(null); }}>Sign in</button>
-          <button className={`auth-tab ${mode === "signup" ? "active" : ""}`} onClick={() => { setMode("signup"); setError(null); setMessage(null); }}>Create account</button>
-        </div>
-
-        {mode === "reset" ? (
-          <div className="auth-form">
-            <p className="auth-desc">Enter your email and we'll send a password reset link.</p>
-            <div className="auth-input-group">
-              <label className="key-label">Email</label>
-              <input type="email" className="key-input" style={{ width: "100%" }} value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} placeholder="you@example.com" autoFocus />
-            </div>
-            {error   && <div className="auth-error">⚠ {error}</div>}
-            {message && <div className="auth-message">✓ {message}</div>}
-            <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} onClick={handleSubmit} disabled={loading || !email.trim()}>
-              {loading ? "Sending…" : "Send reset link"}
-            </button>
-            <button className="auth-link" onClick={() => { setMode("login"); setError(null); setMessage(null); }}>← Back to sign in</button>
-          </div>
-        ) : (
-          <div className="auth-form">
-            <div className="auth-input-group">
-              <label className="key-label">Email</label>
-              <input type="email" className="key-input" style={{ width: "100%" }} value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoFocus />
-            </div>
-            <div className="auth-input-group" style={{ marginTop: 10 }}>
-              <label className="key-label">Password</label>
-              <div className="key-input-row">
-                <input
-                  type={showPass ? "text" : "password"}
-                  className="key-input"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                  placeholder={mode === "signup" ? "Create a password" : "Your password"}
-                />
-                <button className="key-toggle" onClick={() => setShowPass(v => !v)}>{showPass ? "Hide" : "Show"}</button>
-              </div>
-            </div>
-            {error   && <div className="auth-error">⚠ {error}</div>}
-            {message && <div className="auth-message">✓ {message}</div>}
-            <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} onClick={handleSubmit} disabled={loading || !email.trim() || !password.trim()}>
-              {loading ? (mode === "login" ? "Signing in…" : "Creating account…") : (mode === "login" ? "Sign in" : "Create account")}
-            </button>
-            {mode === "login" && (
-              <button className="auth-link" onClick={() => { setMode("reset"); setError(null); setMessage(null); }}>
-                Forgot password?
-              </button>
-            )}
-            {mode === "signup" && (
-              <p className="auth-hint">Your meal plans sync across all your devices once logged in.</p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return <div className="auth-screen"><div className="auth-card">
+    <div className="auth-logo"><span className="auth-logo-mark">◈</span><div className="auth-logo-title">NightFuel</div><div className="auth-logo-sub">weeknight meals that don't suck</div></div>
+    <h2>{recovery ? "Choose a new password" : reset ? "Reset your password" : "Sign in"}</h2>
+    <form className="auth-form" onSubmit={submit}>
+      {!recovery && <div className="auth-input-group"><label htmlFor="email" className="key-label">Email</label><input id="email" type="email" autoComplete="email" className="key-input" required value={email} onChange={e => setEmail(e.target.value)} /></div>}
+      {!reset && <div className="auth-input-group"><label htmlFor="password" className="key-label">{recovery ? "New password" : "Password"}</label><div className="key-input-row">
+        <input id="password" type={showPass ? "text" : "password"} autoComplete={recovery ? "new-password" : "current-password"} className="key-input" required minLength={recovery ? 8 : undefined} value={password} onChange={e => setPassword(e.target.value)} />
+        <button type="button" className="key-toggle" onClick={() => setShowPass(v => !v)}>{showPass ? "Hide" : "Show"}</button>
+      </div></div>}
+      {recovery && <div className="auth-input-group"><label htmlFor="confirm-password" className="key-label">Confirm new password</label><input id="confirm-password" className="key-input" type="password" autoComplete="new-password" required value={confirmation} onChange={e => setConfirmation(e.target.value)} /></div>}
+      {error && <div className="auth-error" role="alert">{error}</div>}
+      {message && <div className="auth-message" role="status">{message}</div>}
+      <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} disabled={loading}>{loading ? "Please wait…" : recovery ? "Save new password" : reset ? "Send reset link" : "Sign in"}</button>
+      {!recovery && <button type="button" className="auth-link" onClick={() => { setMode(reset ? "login" : "reset"); setError(""); setMessage(""); }}>{reset ? "← Back to sign in" : "Forgot password?"}</button>}
+    </form>
+  </div></div>;
 }

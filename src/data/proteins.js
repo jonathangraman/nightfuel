@@ -98,7 +98,6 @@ export const PROTEINS = [
     fat: 10,
     cookMethods: ["Pan-sear", "Grill", "Bake", "Broil"],
   },
-,
   {
     id: "ground-turkey",
     name: "Ground Turkey 93/7",

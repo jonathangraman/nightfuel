@@ -2,7 +2,7 @@ import { useState } from "react";
 import RecipeModal from "./RecipeModal";
 import "./Favorites.css";
 
-export default function Favorites({ favorites, days, onRemove, onAddToWeek, unsplashKey }) {
+export default function Favorites({ favorites, days, onRemove, onAddToWeek, unsplashKey, week, ratings, onRate, onUpdateMeal }) {
   const [addTarget, setAddTarget] = useState(null);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
@@ -69,7 +69,7 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek, unsp
             {addTarget === i && (
               <div className="day-picker-fav">
                 <span className="day-pick-label">Which day?</span>
-                {days.map(d => (
+                {days.filter(d => !week[d]).map(d => (
                   <button key={d} className="day-chip-fav" onClick={() => {
                     onAddToWeek(meal, d);
                     setAddTarget(null);
@@ -88,9 +88,10 @@ export default function Favorites({ favorites, days, onRemove, onAddToWeek, unsp
           onFavorite={null}
           onAddToWeek={onAddToWeek}
           days={days}
-          week={{}}
+          week={week}
           favorites={favorites}
-          unsplashKey={unsplashKey}
+          unsplashKey={unsplashKey} onUpdateMeal={onUpdateMeal}
+          rating={ratings?.[selectedMeal.name] || 0} onRate={r => onRate(selectedMeal.name, r)}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { callAI, validateMeal } from "../lib/ai";
 import RecipeModal from "./RecipeModal";
 import NutritionSummary from "./NutritionSummary";
 import StarRating from "./StarRating";
@@ -69,6 +70,7 @@ RULES FOR VARIETY:
 
 Always include 2 suggested sides per meal. Sides should be specific with brief prep instructions and calories.
 
+Use quantities for 4 servings in every ingredient list, including all side ingredients. Nutrition numbers must be per serving, including sides. Include complete cooking instructions for proteins and sides.
 Respond ONLY with valid JSON (no markdown, no backticks):
 { "meals": [${buildMealSchema()}] }`;
 
@@ -77,30 +79,11 @@ ${FAMILY_CONTEXT}
 
 Always include 2 suggested sides. When seasonal produce is mentioned, use it.
 
+Use quantities for 4 servings in every ingredient list, including all side ingredients. Nutrition numbers must be per serving, including sides. Include complete cooking instructions for proteins and sides.
 Respond ONLY with valid JSON (no markdown, no backticks) — a single meal object:
 ${buildMealSchema("Wednesday")}`;
 
-async function callAI(systemPrompt, userMessage) {
-  const res = await fetch("/api/claude", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.error?.message || `HTTP ${res.status}`);
-  const raw = data.content?.[0]?.text || "";
-  const cleaned = raw.replace(/```json|```/g, "").trim();
-  return JSON.parse(cleaned);
-}
-
-export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, apiKey, onNeedKey, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote, weekend, onOpenGrocery }) {
+export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavorite, onClear, onClearWeek, mealHistory, pendingMeals, onSetPendingMeals, ratings, onRate, unsplashKey, notes, onNote, onUpdateMeal, onOpenGrocery }) {
   const [dayPicker, setDayPicker]         = useState(null);
   const [selectedMeal, setSelectedMeal]   = useState(null);
   const [generating, setGenerating]       = useState(false);
@@ -162,7 +145,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
     try {
       const parsed = await callAI(WEEK_SYSTEM_PROMPT, msg);
-      if (parsed?.meals?.length > 0) onSetPendingMeals(parsed.meals);
+      if (Array.isArray(parsed?.meals) && parsed.meals.length > 0 && parsed.meals.every(m => daysToFill.includes(m.day)) && new Set(parsed.meals.map(m => m.day)).size === daysToFill.length) onSetPendingMeals(parsed.meals.map(validateMeal));
       else setError("Couldn't parse suggestions. Try again.");
     } catch (err) {
       setError(err.message || "Something went wrong. Check your API key and try again.");
@@ -177,7 +160,7 @@ export default function WeekPlanner({ week, days, favorites, onAddMeal, onFavori
 
     const alreadyPlanned = days.filter(d => week[d] && d !== day).map(d => `${d}: ${week[d].name}`).join(", ");
     const currentSuggestion = daySuggestion[day]?.name;
-    const excluded = [...(excludeProteins[day] || []), ...additionalExcludes];
+    const excluded = additionalExcludes;
     const excludeNote = [
       currentSuggestion ? `Do NOT suggest "${currentSuggestion}" again — give something completely different.` : "",
       excluded.length ? `EXCLUDED proteins/ingredients for today: ${excluded.join(", ")} — do not use these AT ALL.` : "",
@@ -192,7 +175,7 @@ Return a single meal object with "day": "${day}".`;
     try {
       const parsed = await callAI(DAY_SYSTEM_PROMPT, msg);
       const meal = parsed?.meals?.[0] || parsed;
-      if (meal?.name) setDaySuggestion(s => ({ ...s, [day]: { ...meal, day } }));
+      if (validateMeal(meal)) setDaySuggestion(s => ({ ...s, [day]: { ...meal, day } }));
       else showToast("Couldn't get a suggestion. Try again.");
     } catch (err) {
       showToast(err.message || "Something went wrong. Check your API key.");
@@ -200,15 +183,6 @@ Return a single meal object with "day": "${day}".`;
     setGeneratingDay(null);
   };
 
-  const addExclude = (day, protein) => {
-    setExcludeProteins(prev => ({
-      ...prev,
-      [day]: [...new Set([...(prev[day] || []), protein])],
-    }));
-    generateForDay(day, [protein]);
-  };
-
-  const clearExcludes = (day) => setExcludeProteins(prev => ({ ...prev, [day]: [] }));
 
   const acceptDaySuggestion = (day) => {
     const meal = daySuggestion[day];
@@ -474,8 +448,7 @@ Return a single meal object with "day": "${day}".`;
           favorites={favorites}
           rating={ratings?.[selectedMeal?.name] || 0}
           onRate={(r) => onRate?.(selectedMeal?.name, r)}
-          apiKey={apiKey}
-          unsplashKey={unsplashKey}
+          unsplashKey={unsplashKey} onUpdateMeal={onUpdateMeal}
         />
       )}
     </div>
