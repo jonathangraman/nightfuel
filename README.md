@@ -84,6 +84,8 @@ Choose a serving count and weekday or weekend day to schedule a recipe snapshot.
 
 ## Source files
 
+Chef batches are opt-in via the Cookbook's **Chef batch log**. Batch 001 contains ten source-checked Jet Tila recipes, with concise NightFuel preparation summaries and publisher links. `docs/chef-import-log.md` records the queue and curation notes. The signed-in user's recipe records retain batch/source/import/review metadata. **Remove from cookbook** archives a record, preserving the deduplication history and allowing restoration through the Removed filter. Existing planned snapshots are not removed when their cookbook recipe is archived. Imports use canonical source keys and deterministic owner/source UUIDs with insert-on-conflict-do-nothing semantics, so retries cannot overwrite recipes or undo removals. No additional database migration is required for batch metadata.
+
 - `src/App.jsx`: authentication, navigation, and meal actions
 - `src/lib/useMealStore.js`: local persistence, cloud sync, conflict recovery
 - `src/lib/mealState.js`: versioned storage and legacy migration
