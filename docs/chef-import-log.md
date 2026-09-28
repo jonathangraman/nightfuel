@@ -1,6 +1,6 @@
 # Chef collection import log
 
-Target: approximately 10 recipes per chef, one batch at a time, with user review between batches.
+Target: 10 recipes per chef in labeled batches. On 2026-09-28 the user authorized continuing across chefs without waiting for review between batches. New records remain Needs review; existing keep/remove choices are preserved.
 
 ## Batch 001 — Jet Tila
 
@@ -27,6 +27,21 @@ Prepared 2026-09-28. Ten Greek/Greek-inspired selections in `src/data/chefBatch0
 
 No nutrition estimates or publisher photographs were imported. Specialty ingredients are flagged. NightFuel safety clarifications are distinguished from source instructions. Deterministic IDs and source keys prevent duplicate imports and preserve earlier keep/remove decisions. The cookbook now tracks both batches separately.
 
-## Upcoming batches — not imported
+## Collections 003–012 — prepared 2026-09-28
 
-Marcela Valladolid, Jacques Pépin, Tyler Florence, followed by Lidia Bastianich, Maangchi, the Woks of Life family, Rick Bayless, Pati Jinich, Nagi Maehashi, and Nami Chen. Chef order and selections can change after user review. Aim for suitable appetizers, sides, mains and desserts across the collection; do not invent attribution to fill a course quota.
+Each collection contains ten entries, for 100 new recipes. Corresponding `src/data/chefBatchNNN.js` files are the source manifest; each record includes a direct source URL and canonical import key. The live per-user batch log is authoritative for review status.
+
+| Batch | Chef / authors | Count |
+| --- | --- | --- |
+| 003 | Marcela Valladolid | 10 |
+| 004 | Jacques Pépin | 10 |
+| 005 | Tyler Florence | 10 |
+| 006 | Lidia Bastianich | 10 |
+| 007 | Maangchi | 10 |
+| 008 | The Woks of Life family | 10 |
+| 009 | Rick Bayless | 10 |
+| 010 | Pati Jinich | 10 |
+| 011 | Nagi Maehashi | 10 |
+| 012 | Nami Chen | 10 |
+
+Ingredients and yields were checked against public chef/publisher recipes. Preparation text is a short original NightFuel overview, not a reproduction of the full publisher method. Source links remain necessary before cooking. No publisher photos or nutrition estimates are included. Source quantity ranges use an explained endpoint, and cup/piece/batch yields are explicitly labeled. Where the source does not state portions, the record uses one complete batch rather than inventing a serving count. Optional substitutions or simplifications are disclosed in notes. All 120 source keys are unique, and import retries skip both existing and removed entries.
