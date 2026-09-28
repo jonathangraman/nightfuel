@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { groceryIngredients } from "../lib/cookbook";
 import "./GroceryList.css";
 
 const SECTIONS = {
@@ -18,10 +19,7 @@ function categorize(ingredient) {
 
 function parseIngredients(week, days, weekend) {
   const weekendDays = ["Saturday", "Sunday"];
-  const raw = [
-    ...days.flatMap(d => week[d]?.ingredients || []),
-    ...weekendDays.flatMap(d => weekend?.[d]?.ingredients || []),
-  ];
+  const raw = groceryIngredients([...days.map(d => week[d]), ...weekendDays.map(d => weekend?.[d])]);
   const seen = new Set();
   const unique = raw.filter(i => {
     const key = i.toLowerCase().trim();

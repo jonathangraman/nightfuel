@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import WeekPlanner from "./components/WeekPlanner";
 const AIChat = lazy(() => import("./components/AIChat"));
 const Favorites = lazy(() => import("./components/Favorites"));
+const Cookbook = lazy(() => import("./components/Cookbook"));
 const MealBuilder = lazy(() => import("./components/MealBuilder"));
 const WeekendPlanner = lazy(() => import("./components/WeekendPlanner"));
 import Auth from "./components/Auth";
@@ -9,6 +10,7 @@ import GroceryList from "./components/GroceryList";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabase";
 import { DAYS, WEEKEND_DAYS } from "./lib/mealState";
 import useMealStore from "./lib/useMealStore";
+import { groceryIngredients } from "./lib/cookbook";
 import "./App.css";
 
 const defaultWeek = () => Object.fromEntries(DAYS.map(day => [day, null]));
@@ -120,6 +122,7 @@ function MealApp({ user, onSignOut }) {
 
   const NAV = [
     { id: "planner",   label: "Week" },
+    { id: "cookbook", label: "Cookbook" },
     { id: "builder",   label: "Meal Builder" },
     { id: "ai",        label: "NightFuel AI" },
     { id: "favorites", label: `Saved${favorites.length ? ` · ${favorites.length}` : ""}` },
@@ -171,7 +174,7 @@ function MealApp({ user, onSignOut }) {
           ...DAYS.map(d => week[d]),
           ...WEEKEND_DAYS.map(d => weekend[d]),
         ].filter(Boolean);
-        const itemCount = [...new Set(allMeals.flatMap(m => m.ingredients || []))].length;
+        const itemCount = groceryIngredients(allMeals).length;
         if (itemCount === 0 && !grocery.extras.length) return null;
         return (
           <div className="grocery-bar" onClick={() => setShowGrocery(true)}>
@@ -194,6 +197,7 @@ function MealApp({ user, onSignOut }) {
           </> : user && <button className="btn btn-ghost" onClick={store.retry} disabled={store.saving}>Retry sync</button>}
         </div>}
         <Suspense fallback={<p role="status">Opening…</p>}>
+        {tab === "cookbook" && <Cookbook userId={user?.id} days={[...DAYS, ...WEEKEND_DAYS]} plan={{ ...week, ...weekend }} favorites={favorites} onSchedule={(meal, day) => WEEKEND_DAYS.includes(day) ? addToWeekend(meal, day) : addToWeek(meal, day)} />}
         {tab === "planner" && (
           <WeekPlanner
             week={week} days={DAYS} favorites={favorites}
