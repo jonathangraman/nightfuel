@@ -45,3 +45,9 @@ Each collection contains ten entries, for 100 new recipes. Corresponding `src/da
 | 012 | Nami Chen | 10 |
 
 Ingredients and yields were checked against public chef/publisher recipes. Preparation text is a short original NightFuel overview, not a reproduction of the full publisher method. Source links remain necessary before cooking. No publisher photos or nutrition estimates are included. Source quantity ranges use an explained endpoint, and cup/piece/batch yields are explicitly labeled. Where the source does not state portions, the record uses one complete batch rather than inventing a serving count. Optional substitutions or simplifications are disclosed in notes. All 120 source keys are unique, and import retries skip both existing and removed entries.
+
+## Batch 013 — Leah Cohen · Asian recipes
+
+Prepared 2026-09-28 at the user's request for Leah's Asian recipes. Ten records in `src/data/chefBatch013.js`: Chicken Pad See Ew, Beef Ka Prow with Basil, Chicken Adobo, Pancit Bihon with Chicken, Ukoy Shrimp and Sweet Potato Fritters, Red Snapper Sinigang, Vinegar-Braised Greens, Filipino Barbecue Chicken Skewers, Philippine Seafood Paella, and Philippine Fruit Salad. Two Thai and eight Filipino recipes, all initially Needs review.
+
+Sources: Cohen's Feedfeed recipe, her GMA appearances, and Saveur recipes credited to her. Published substitutions are identified; uncertain serving counts use one batch. Notes flag specialty groceries, duplicate source salt in ukoy, and the inconsistent pineapple weight in the fruit salad. The skewer overview discards used marinade instead of reusing it for basting, and the noodle overview clarifies cooking the returned chicken fully. Summaries direct cooks to the original method. No photos or nutrition estimates imported. The complete registry now has 130 distinct source keys; imports preserve review decisions.
