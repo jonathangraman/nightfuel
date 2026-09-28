@@ -6,9 +6,11 @@ export function validateRecipe(recipe) {
   if (!COURSES.includes(recipe.course)) throw new Error('Choose a course.');
   if (!Array.isArray(recipe.ingredients) || !recipe.ingredients.length || recipe.ingredients.some(i => !i || typeof i.name !== 'string' || !i.name.trim() || typeof i.unit !== 'string' || (i.quantity !== null && (!Number.isFinite(i.quantity) || i.quantity <= 0)))) throw new Error('Each ingredient needs a name and a positive quantity, or a blank quantity for “to taste”.');
   if (typeof recipe.instructions !== 'string' || !recipe.instructions.trim()) throw new Error('Add the cooking instructions.');
-  for (const field of ['description', 'author', 'cuisine', 'sourceUrl', 'sourceBook', 'notes', 'cookTime']) {
+  for (const field of ['description', 'author', 'cuisine', 'sourceUrl', 'sourceBook', 'notes', 'cookTime', 'imageUrl', 'imageCredit']) {
     if (recipe[field] != null && typeof recipe[field] !== 'string') throw new Error('Recipe details must be text.');
   }
+  if (recipe.imageUrl && !/^https:\/\//i.test(recipe.imageUrl) && !/^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(recipe.imageUrl)) throw new Error('Use an HTTPS photo link or upload a JPEG, PNG or WebP photo.');
+  if (recipe.imageUrl?.length > 1500000) throw new Error('Choose a photo smaller than 1 MB.');
   if (recipe.sourceUrl) {
     let url;
     try { url = new URL(recipe.sourceUrl); } catch { throw new Error('Enter a complete source link starting with https://.'); }
