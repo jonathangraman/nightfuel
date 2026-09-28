@@ -80,3 +80,9 @@
 @media(max-width:640px) { .cb-recipe-columns { grid-template-columns:1fr; gap:24px; } .cb-reader-heading h2 { font-size:29px; } .cb-reader>.cb-cover { height:180px; } .cb-review-tabs button { padding:10px 12px; font-size:12px; } .cb-grid { grid-template-columns:1fr; } }
 @media(prefers-reduced-motion:reduce) { .cb-card { transition:none; } }
 
+.cb-photo-search { margin:14px 0 22px; }
+.cb-photo-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:20px 0; }
+.cb-photo-results article { min-width:0; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.cb-photo-results img { width:100%; height:150px; object-fit:cover; border-radius:8px; }
+.cb-photo-results p { overflow-wrap:anywhere; font-size:13px; }
+.cb-photo-results small,.cb-photo-results a { display:block; font-size:11px; margin:8px 0; overflow-wrap:anywhere; }
