@@ -2,7 +2,7 @@ import { useState } from 'react';
 import useCookbook from '../lib/useCookbook';
 import { COURSES, CUISINES, recipeToMeal, validateRecipe } from '../lib/cookbook';
 import { callAI } from '../lib/ai';
-import { chefBatch001 } from '../data/chefBatch001';
+import { chefBatches } from '../data/chefBatches';
 import { pendingImports } from '../lib/recipeImports';
 import './Cookbook.css';
 import RecipeCover from './RecipeCover';
@@ -48,8 +48,7 @@ export default function Cookbook({ userId, days, plan, onSchedule, favorites }) 
     } catch (err) { setError(err.message); }
   };
   const active = store.recipes.filter(r => r.reviewStatus !== 'removed');
-  const batchRecords = store.recipes.filter(r => r.batchId === '001-jet-tila');
-  const pendingCount = pendingImports(chefBatch001, store.recipes).length;
+  const batchRecords = store.recipes.filter(r => chefBatches.some(b => b.id === r.batchId));
   const filtered = store.recipes.filter(r => (review === 'removed' ? r.reviewStatus === 'removed' : r.reviewStatus !== 'removed' && (review === 'active' || r.reviewStatus === review)) && (!course || r.course === course) && (!cuisine || r.cuisine === cuisine) && `${r.name} ${r.author} ${r.cuisine}`.toLowerCase().includes(search.toLowerCase()));
   const groups = [...new Set(filtered.map(r => r.cuisine || 'Uncategorized'))].sort((a, b) => a.localeCompare(b));
   const counts = { active: active.length, new: active.filter(r => r.reviewStatus === 'new').length, kept: active.filter(r => r.reviewStatus === 'kept').length, removed: store.recipes.length - active.length };
@@ -60,7 +59,11 @@ export default function Cookbook({ userId, days, plan, onSchedule, favorites }) 
     {message && <p role="status">{message}</p>}
     {error && <p role="alert" className="planner-error">{error}</p>}
     {!store.loading && !store.error && <>
-      <details className="cb-batches"><summary>Chef batch log · {batchRecords.length} recipes imported</summary><h3>Batch 001 · Jet Tila</h3><p>{batchRecords.filter(r => r.reviewStatus === 'new').length} awaiting review · {batchRecords.filter(r => r.reviewStatus === 'kept').length} kept · {batchRecords.filter(r => r.reviewStatus === 'removed').length} removed</p><p>Removed recipes stay in this log and will not be imported again.</p><button className="btn btn-ghost" disabled={store.saving || !pendingCount} onClick={async () => { setError(''); try { const count = await store.importBatch(chefBatch001); setReview('new'); setMessage(`${count} Jet Tila recipes added for review.`); } catch (err) { setError(err.message); } }}>{store.saving ? 'Saving…' : pendingCount ? `Add Jet Tila batch (${pendingCount} recipes)` : 'Batch already imported'}</button><ul>{batchRecords.map(r => <li key={r.id}>{r.name} — {r.reviewStatus === 'new' ? 'New—needs review' : r.reviewStatus} · <a href={r.sourceUrl} target="_blank" rel="noreferrer">Source</a></li>)}</ul></details>
+      <details className="cb-batches"><summary>Chef batch log · {batchRecords.length} recipes imported</summary><p>Removed recipes stay in this log and will not be imported again.</p>{chefBatches.map(batch => {
+        const records = batchRecords.filter(r => r.batchId === batch.id);
+        const pendingCount = pendingImports(batch.recipes, store.recipes).length;
+        return <section key={batch.id} aria-label={batch.label}><h3>{batch.label}</h3><p>{records.filter(r => r.reviewStatus === 'new').length} awaiting review · {records.filter(r => r.reviewStatus === 'kept').length} kept · {records.filter(r => r.reviewStatus === 'removed').length} removed</p><button className="btn btn-ghost" disabled={store.saving || !pendingCount} onClick={async () => { setError(''); try { const count = await store.importBatch(batch.recipes); setReview('new'); setMessage(`${count} recipes from ${batch.label} added for review.`); } catch (err) { setError(err.message); } }}>{store.saving ? 'Saving…' : pendingCount ? `Add ${batch.label} (${pendingCount} recipes)` : `${batch.label} already imported`}</button><ul>{records.map(r => <li key={r.id}>{r.name} — {r.reviewStatus === 'new' ? 'New—needs review' : r.reviewStatus} · <a href={r.sourceUrl} target="_blank" rel="noreferrer">Source</a></li>)}</ul></section>;
+      })}</details>
       <div className="cb-review-tabs" aria-label="Recipe collections">{[['active', 'All recipes'], ['new', 'Needs review'], ['kept', 'Reviewed · kept'], ['removed', 'Removed']].map(([value, label]) => <button key={value} className={review === value ? 'is-active' : ''} aria-pressed={review === value} onClick={() => setReview(value)}>{label}{' '}<span>{counts[value]}</span></button>)}</div>
       <label className="cb-review-filter cb-visually-hidden">Review status<select value={review} onChange={e => setReview(e.target.value)}><option value="active">My cookbook</option><option value="new">New—needs review</option><option value="kept">Kept</option><option value="removed">Removed</option></select></label>
       <div className="cb-filters"><label>Search recipes or authors<input value={search} onChange={e => setSearch(e.target.value)} placeholder="Recipe, chef, or author" /></label><label>Course<select value={course} onChange={e => setCourse(e.target.value)}><option value="">All courses</option>{COURSES.map(c => <option key={c}>{c}</option>)}</select></label><label>Cuisine<select value={cuisine} onChange={e => setCuisine(e.target.value)}><option value="">All cuisines</option>{[...new Set([...CUISINES, ...store.recipes.map(r => r.cuisine).filter(Boolean)])].map(c => <option key={c}>{c}</option>)}</select></label><button className="btn btn-ghost" onClick={store.load}>Refresh</button></div>

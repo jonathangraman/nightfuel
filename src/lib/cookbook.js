@@ -1,5 +1,5 @@
 export const COURSES = ['Main Dishes', 'Appetizers', 'Sides', 'Soups', 'Salads', 'Desserts'];
-export const CUISINES = ['Mexican', 'Italian', 'Chinese', 'Korean', 'Japanese', 'Thai', 'French', 'American', 'Mediterranean', 'Other'];
+export const CUISINES = ['Mexican', 'Italian', 'Chinese', 'Korean', 'Japanese', 'Thai', 'French', 'Greek', 'American', 'Mediterranean', 'Other'];
 export function validateRecipe(recipe) {
   if (typeof recipe?.name !== 'string' || !recipe.name.trim()) throw new Error('Give your recipe a name.');
   if (!Number.isFinite(recipe.servings) || recipe.servings <= 0 || recipe.servings > 100) throw new Error('Servings must be between 1 and 100.');
