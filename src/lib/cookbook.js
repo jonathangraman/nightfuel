@@ -1,4 +1,4 @@
-export const COURSES = ['Main Dishes', 'Appetizers', 'Sides', 'Soups', 'Salads', 'Desserts'];
+export const COURSES = ['Main Dishes', 'Appetizers', 'Sides', 'Soups', 'Salads', 'Sauces & Condiments', 'Desserts'];
 export const CUISINES = ['Mexican', 'Italian', 'Chinese', 'Korean', 'Japanese', 'Thai', 'French', 'Greek', 'American', 'Mediterranean', 'Other'];
 export function validateRecipe(recipe) {
   if (typeof recipe?.name !== 'string' || !recipe.name.trim()) throw new Error('Give your recipe a name.');

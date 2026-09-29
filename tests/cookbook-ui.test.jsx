@@ -13,6 +13,17 @@ const show = onSchedule => render(<Cookbook userId="owner" days={['Monday', 'Sat
 it('starts empty and does not seed or save any recipes', () => {
   show(); expect(screen.getByText('Your cookbook starts here')).toBeTruthy(); expect(store.save).not.toHaveBeenCalled(); expect(callAI).not.toHaveBeenCalled();
 });
+it('filters sauces and scales a cup-based sauce into the meal plan', () => {
+  const sauce = { ...recipe, id: 'salsa', name: 'Salsa verde', course: 'Sauces & Condiments', cuisine: 'Mexican', servings: 1.5, yieldUnit: 'cups', ingredients: [{ name: 'tomatillos', quantity: 12, unit: 'oz' }] };
+  store.recipes = [recipe, sauce];
+  const schedule = vi.fn(); show(schedule);
+  fireEvent.change(screen.getByLabelText('Course'), { target: { value: 'Sauces & Condiments' } });
+  expect(screen.queryByRole('button', { name: /Chocolate pudding/ })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: /Salsa verde/ }));
+  fireEvent.change(screen.getByLabelText('Servings'), { target: { value: '3' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Add to meal plan' }));
+  expect(schedule).toHaveBeenCalledWith(expect.objectContaining({ ingredients: ['24 oz tomatillos'], course: 'Sauces & Condiments' }), 'Monday');
+});
 it('schedules scaled ingredients on a weekend day', () => {
   store.recipes = [recipe]; const schedule = vi.fn(); show(schedule);
   fireEvent.click(screen.getByRole('button', { name: /Chocolate pudding/ }));
