@@ -1,0 +1,50 @@
+import { chefEntry } from './chefEntry.js';
+
+const make = (cuisine, ...args) => ({
+  ...chefEntry('016-jet-tila', 'Jet Tila', cuisine)(...args), sourceCheckedAt: '2026-09-29',
+});
+const uk = 'https://foodnetwork.co.uk/recipes/';
+const hallmark = 'https://www.hallmarkchannel.com/home-and-family/recipes/';
+
+export const chefBatch016 = [
+  make('Korean Fusion', 'Korean Short Rib Tacos', 'Main Dishes', 6, uk + 'korean-short-rib-tacos',
+    [[4,'lb','boneless short ribs'],[null,'','salt'],[null,'','black pepper'],[100,'g','flour'],[50,'g','butter'],[2,'tbsp','oil for braising'],[2,'','shallots'],[1,'','carrot'],[1,'','celery stalk'],[750,'ml','red wine'],[945,'ml','beef broth'],[2,'','bay leaves'],[2,'sprigs','parsley'],[2,'sprigs','thyme'],[3,'tbsp','soy sauce'],[3,'tbsp','sugar'],[2,'tbsp','gochujang'],[2,'tsp','sesame oil'],[12,'','small tortillas'],[1,'tbsp','oil for vegetables'],[2,'lb','Brussels sprouts'],[0.5,'','onion'],[2,'','limes']],
+    'Flour and brown beef; soften aromatics, reduce wine, then add broth and herbs. Braise covered at 325°F until tender and shred. Sauté sliced sprouts and onion, fold in beef and mixed Korean sauce, and fill tortillas.',
+    'A braised taco preparation, distinct from the already imported grilled short ribs. Gochujang is Korean chili paste.'),
+  make('Vietnamese', 'Quick Beef Pho', 'Soups', 4, uk + 'quick-beef-pho',
+    [[2,'tbsp','beef bouillon base'],[1,'quart','water'],[1,'tbsp','fish sauce'],[1,'tbsp','sugar'],[1,'piece','ginger, 2 inches'],[0.5,'','yellow onion for broth'],[null,'','kosher salt'],[2,'','whole cloves'],[2,'','star anise'],[1,'','cinnamon stick'],[240,'g','thin rice noodles'],[240,'g','thinly shaved beef loin'],[1,'cup','Vietnamese basil leaves'],[240,'g','bean sprouts'],[95,'g','cilantro'],[5,'','jalapeños'],[4,'','scallions'],[0.5,'','yellow onion for topping'],[1,'','lime'],[null,'','hoisin sauce'],[null,'','Sriracha']],
+    'Simmer broth with ginger, onion and bundled spices, then strain. Prepare noodles separately. Divide noodles, beef and garnishes among bowls and add very hot broth. Serve with lime and sauces.',
+    'Basil uses the page’s cup measure, not its inconsistent gram conversion. NightFuel clarification: poach beef in simmering broth until cooked if pouring broth alone does not cook it. Five chiles is the published table-garnish amount.'),
+  make('Thai', 'Vegan Pad Thai', 'Main Dishes', 2, uk + 'vegan-pad-thai',
+    [[3,'cups','flat rice noodles'],[3,'tbsp','Thai soy sauce'],[1,'tbsp','Thai tamarind paste'],[1,'tbsp','lime juice'],[1,'tbsp','Sriracha'],[1,'tsp','rice vinegar'],[0.25,'cup','palm sugar'],[1,'tbsp','additional palm sugar'],[60,'ml','water for sauce'],[3,'tbsp','oil'],[3,'cloves','garlic'],[95,'g','firm tofu'],[1.5,'tbsp','sweet pickled turnip'],[2,'tbsp','paprika, optional'],[3,'','scallions'],[50,'g','roasted peanuts'],[40,'g','bean sprouts']],
+    'Soften dry noodles before cooking; fresh noodles can go straight into the pan. Combine sauce ingredients. Stir-fry garlic, tofu and turnip, then toss with noodles and sauce. Finish with scallions, peanuts and sprouts.',
+    'Lower Sriracha and scallion amounts recorded. Noodles and sugar use the US-original volume measures, avoiding ambiguous UK weight conversions: https://www.foodnetwork.com/fnk/recipes/vegan-pad-thai-11173655'),
+  make('Chinese American', 'Cauliflower Fried Rice with Chicken and Vegetables', 'Main Dishes', 4, 'https://www.weightwatchers.com/us/recipe/cauliflower-fried-rice-chicken-and-vegetables-chef-jet-tila/5e85ffc986609303d8589c25',
+    [[1,'tbsp','oil'],[2,'cloves','garlic'],[0.75,'cup','cooked chicken breast'],[4,'cups','cauliflower rice'],[0.25,'cup','carrot'],[0.25,'cup','green beans'],[1,'','egg'],[2,'tbsp','soy sauce'],[2,'tbsp','oyster sauce'],[1,'tsp','sugar'],[null,'','salt'],[2,'','scallions'],[null,'','white pepper']],
+    'Fry garlic, then toss in cooked chicken, cauliflower and vegetables. Scramble the egg into the mixture. Add sauces and sugar, cook until hot, and finish with scallions and pepper.',
+    'Published by WeightWatchers and credited to Jet Tila. Uses cauliflower in place of rice; no nutrition estimate imported.'),
+  make('Thai', 'Chicken Satay with Peanut Sauce', 'Appetizers', 8, 'https://www.goodmorningamerica.com/amp/food/story/make-easy-chicken-satay-peanut-sauce-77963051',
+    [[2,'tsp','red curry paste for marinade'],[1,'tbsp','curry powder'],[0.5,'tbsp','black pepper'],[1,'tbsp','salt'],[1,'tbsp','sugar for marinade'],[1,'tsp','garlic powder'],[0.25,'cup','coconut milk for marinade'],[2,'lb','chicken breast'],[2,'tbsp','oil'],[1,'tbsp','red curry paste for sauce'],[2,'cups','coconut milk for sauce'],[2,'tbsp','chunky peanut butter'],[2,'tbsp','fish sauce'],[0.5,'tsp','rice vinegar'],[2,'tbsp','sugar for sauce']],
+    'Refrigerate thin chicken pieces in the curry marinade. Thread onto skewers and grill until cooked through. Fry curry paste in oil, then simmer with coconut milk, peanut butter and sauce seasonings until thickened.',
+    'Published yield is eight skewers, although the equipment list suggests more. Yield counts skewers, not dinner portions.', 'skewers'),
+  make('American', 'Fruit Salad with Honey Mint Dressing', 'Desserts', 1, hallmark + 'jet-tilas-fruit-salad',
+    [[4,'cups','watermelon'],[2,'cups','strawberries'],[3,'','peaches'],[2,'cups','honeydew'],[2,'cups','blackberries'],[2,'cups','blueberries'],[1,'','pineapple'],[0.5,'cup','lemon juice'],[0.25,'cup','fresh mint'],[1,'','lemon, zested'],[0.5,'cup','honey']],
+    'Prepare fruit in bite-size pieces. Stir honey with lemon juice, zest and chopped mint, then gently dress the fruit and serve chilled.',
+    'No serving count published: one large batch. Source provides ingredients and preparation tips; this brief mixing overview is NightFuel’s wording.', 'batch'),
+  make('Italian American', 'Sausage and Roasted Vegetable Fusilli', 'Main Dishes', 1, hallmark + 'sausage-and-roasted-vegetable-fusilli-pasta',
+    [[0.5,'','onion'],[0.5,'','zucchini'],[0.5,'','yellow squash'],[1,'','red bell pepper'],[2.5,'tbsp','olive oil'],[null,'','salt'],[null,'','black pepper'],[2,'','sweet Italian sausages'],[1,'jar','pasta sauce'],[12,'oz','fusilli'],[null,'','Parmesan']],
+    'Toss vegetables with oil and seasoning; roast at 400°F until browned. Sauté crumbled sausage until cooked, then simmer with vegetables and sauce. Toss with cooked pasta and add Parmesan.',
+    'No portion count or sauce-jar size published; recorded as one complete batch.', 'batch'),
+  make('Asian Fusion', 'Miso Black Cod with Apple Green Bean Salad', 'Main Dishes', 1, hallmark + 'miso-black-cod-with-apple-green-bean-salad',
+    [[2,'lb','black cod'],[1,'cup','sake'],[1,'cup','mirin'],[3,'oz','white sugar'],[3,'oz','brown sugar'],[1,'lb','white miso'],[3,'tbsp','grated ginger'],[8,'cups','grated Honeycrisp apple'],[1,'cup','green beans'],[8,'','grape tomatoes'],[1,'tbsp','dried shrimp powder for salad'],[1,'cup','roasted peanuts'],[2,'fl oz','fish sauce'],[2,'fl oz','lime juice'],[2,'oz','palm sugar'],[2,'cloves','garlic'],[1,'tbsp','dried shrimp powder for dressing'],[1,'','Thai chile'],[null,'','oil for grill']],
+    'Cook the miso marinade, cool completely, and reserve a clean portion. Refrigerate fish in remaining marinade overnight. Wipe excess off and grill until cooked, basting with the reserved portion. Blend dressing coarsely and toss with salad.',
+    'One batch; no portion yield. Lower tomato/chile amounts recorded. Large marinade allowance is not all consumed. Black cod, miso, sake and dried shrimp may need specialty shopping.', 'batch'),
+  make('Italian American', 'Sunday Night Chicken Parmesan', 'Main Dishes', 4, hallmark + 'sunday-night-chicken-parmesan',
+    [[1,'tbsp','kosher salt'],[2,'tsp','black pepper'],[1,'tbsp','Italian seasoning'],[2,'lb','boneless chicken thighs'],[0.5,'cup','flour'],[3,'','eggs'],[2,'cups','panko'],[null,'','canola frying oil'],[5,'cups','prepared tomato sauce'],[1,'cup','Parmesan'],[8,'oz','mozzarella']],
+    'Flatten chicken, season, then coat with flour, beaten egg and panko. Fry until golden, arrange with tomato sauce and cheeses, and bake at 375°F until chicken is cooked through and cheese bubbles.',
+    'Lower panko range recorded. NightFuel shortcut: five cups prepared tomato sauce; the linked homemade sauce subrecipe yields only four cups.'),
+  make('Thai', 'Panang Chicken Curry', 'Main Dishes', 1, hallmark + 'panang-chicken-curry-with-rice-thai-iced-tea',
+    [[6,'cups','full-fat coconut milk'],[4,'tbsp','Panang curry paste'],[2,'','makrut lime leaves'],[0.5,'cup','sliced onion'],[0.5,'cup','Thai basil'],[1.5,'lb','chicken breast'],[1,'cup','canned bamboo shoots'],[0.5,'cup','red bell pepper'],[2,'tsp','fish sauce'],[0.5,'tbsp','tamarind paste'],[1,'tsp','sugar'],[null,'','cooked rice for serving']],
+    'Fry curry paste and lime leaves in thick cream skimmed from the coconut milk. Add onion, basil and remaining milk; reduce. Simmer sliced chicken, vegetables and seasonings in the sauce until chicken is fully cooked.',
+    'No portion yield given: one batch. Imports the curry only, not the rice and tea subrecipes. Panang paste and lime leaves may need an Asian market.', 'batch'),
+];

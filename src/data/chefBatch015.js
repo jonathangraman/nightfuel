@@ -1,0 +1,50 @@
+import { chefEntry } from './chefEntry.js';
+
+const make = (cuisine, ...args) => ({
+  ...chefEntry('015-jet-tila', 'Jet Tila', cuisine)(...args), sourceCheckedAt: '2026-09-29',
+});
+const lkk = 'https://usa.lkk.com/en/recipes/';
+const uk = 'https://foodnetwork.co.uk/recipes/';
+
+export const chefBatch015 = [
+  make('Chinese', 'Hoisin Shrimp and Broccoli', 'Main Dishes', 2, lkk + 'hoisin-shrimp-and-broccoli',
+    [[1,'tbsp','oil'],[1,'tbsp','minced ginger'],[1,'tbsp','minced garlic'],[4,'cups','broccoli'],[1.5,'lb','shrimp'],[0.25,'cup','hoisin sauce'],[null,'','salt'],[null,'','black pepper'],[null,'','scallions'],[null,'','sesame seeds']],
+    'Fry ginger and garlic, then stir-fry broccoli. Add shrimp and hoisin, cooking until shrimp are done. Season and garnish with scallions and sesame.',
+    'From Lee Kum Kee’s Jet Tila collection.'),
+  make('Chinese American', 'Spicy Tangerine Beef', 'Main Dishes', 4, lkk + 'spicy-tangerine-beef',
+    [[1,'lb','beef tenderloin'],[2,'tbsp','canola oil for cooking'],[1,'','carrot'],[0.5,'','onion'],[1,'tbsp','cornstarch for slurry'],[1,'tbsp','water for slurry'],[1,'tbsp','cornstarch for marinade'],[1,'tbsp','soy sauce'],[1,'tbsp','oil for marinade'],[3,'tbsp','Chiu Chow chili oil'],[0.25,'cup','hoisin sauce'],[2,'tbsp','minced ginger'],[0.25,'cup','sherry'],[0.25,'cup','honey'],[0.25,'cup','tangerine juice'],[null,'','cooked rice'],[null,'','broccoli for serving'],[null,'','sesame seeds'],[null,'','scallions'],[null,'','tangerine zest']],
+    'Marinate sliced beef in soy, starch and oil. Mix the sauce separately. Stir-fry beef and vegetables, add sauce, and thicken with the starch slurry. Finish cooking and serve with rice and broccoli.',
+    'From Lee Kum Kee’s Jet Tila collection. Chili oil supplies substantial heat.'),
+  make('Asian Fusion', 'Air Fryer Hoisin Salmon with Egg Fried Rice', 'Main Dishes', 4, lkk + 'air-fryer-hoisin-salmon-with-egg-fried-rice',
+    [[12,'oz','salmon'],[2,'tbsp','oil'],[2,'','eggs'],[1,'','small onion'],[3,'cups','cooked chilled rice'],[1,'cup','frozen peas and carrots'],[0.25,'cup','scallions'],[2,'tbsp','lemongrass chili hoisin sauce'],[0.125,'tsp','ground ginger'],[1,'clove','garlic'],[1,'tbsp','honey'],[2,'tbsp','soy sauce'],[1,'tbsp','oyster sauce'],[1,'tsp','sesame oil'],[null,'','salt'],[null,'','black pepper'],[null,'','sesame seeds'],[null,'','chives'],[null,'','nori, optional']],
+    'Glaze salmon with the flavored hoisin mixture and air-fry at 400°F until cooked. Separately scramble eggs, stir-fry onion, rice and vegetables, then season with sauces. Serve fish over rice with garnishes.',
+    'From Lee Kum Kee’s Jet Tila collection. Published yield is four although it uses two 6-oz fillets; divide into four small portions. Lower sauce-range amounts recorded. Uses flavored hoisin.'),
+  make('Chinese', 'Beef Chow Fun', 'Main Dishes', 4, lkk + 'chow-fun-noodles',
+    [[10,'oz','flank steak'],[2,'tbsp','oil'],[0.5,'','onion'],[1,'lb','fresh flat rice noodles'],[2,'cups','bean sprouts'],[1,'','scallion'],[0.25,'cup','sliced scallions for garnish'],[1,'tsp','baking soda'],[1,'tbsp','cornstarch'],[2,'tbsp','water'],[0.25,'tsp','white pepper'],[1.25,'tbsp','soy sauce'],[2,'tbsp','oyster sauce'],[1,'tbsp','dark soy sauce'],[1,'tsp','sesame oil'],[null,'','salt'],[null,'','black pepper']],
+    'Marinate sliced beef with soda, starch, water and seasonings. Sear beef and onion, then toss with fresh noodles and sauces. Fold in sprouts and scallion, finish cooking, and add sesame oil.',
+    'From Lee Kum Kee’s Jet Tila collection. Fresh wide rice noodles may require an Asian market.'),
+  make('Thai', 'Chicken Pad See Ew', 'Main Dishes', 4, lkk + 'pad-see-ew-2',
+    [[3,'tbsp','oil'],[2,'cloves','garlic'],[1,'lb','chicken breast'],[2,'','eggs'],[1.5,'cups','broccoli'],[4,'cups','fresh rice noodles'],[1,'tsp','scallions'],[3,'tbsp','mushroom dark soy sauce'],[1,'tbsp','oyster sauce'],[2,'tbsp','fish sauce'],[2,'tsp','sugar'],[0.5,'tsp','white pepper']],
+    'Stir-fry sliced chicken and garlic in oil until chicken is cooked through. Scramble eggs, then add broccoli and noodles. Toss with combined sauces and seasonings until hot and evenly coated; add scallions.',
+    'From Lee Kum Kee’s Jet Tila collection. NightFuel clarification: its written method omits cooking the listed chicken, garlic and oil; the overview explicitly includes that step. Read the linked recipe and video.'),
+  make('Japanese', 'Yellowtail Sashimi with Chili and Ponzu', 'Appetizers', 4, lkk + 'yellowtail-sashimi-with-chili-and-ponzu',
+    [[1,'lb','yellowtail prepared for raw consumption'],[6,'slices','jalapeño'],[null,'','cilantro'],[1,'tsp','sesame oil'],[2,'tbsp','yuzu juice'],[1,'tbsp','soy sauce']],
+    'Keep prepared fish chilled and slice thinly. Arrange with jalapeño and cilantro. Mix citrus juice and soy, dress the fish, and finish with sesame oil immediately before serving.',
+    'From Lee Kum Kee’s Jet Tila collection. A specialty raw-fish dish: ask your fishmonger for fish suitable for this preparation. Source allows lemon juice instead of yuzu.'),
+  make('Thai', 'Spicy Basil Beef (Pad Krapow)', 'Main Dishes', 4, uk + 'spicy-basil-beef-pad-krapow',
+    [[3,'tbsp','sweet soy sauce'],[2,'tbsp','oyster sauce'],[4,'tbsp','fish sauce'],[2,'tbsp','chili paste in soybean oil'],[6,'tbsp','vegetable oil'],[2,'','eggs'],[720,'g','lean ground beef'],[4,'cloves','garlic'],[1,'','Thai chile'],[1,'','onion'],[1,'','small red bell pepper'],[1.5,'cups','Thai basil leaves'],[0.5,'tsp','white pepper']],
+    'Mix the sauces. Fry eggs in half the oil and set aside. Brown beef in remaining oil with garlic and chile; add onion and pepper. Toss with sauce and basil until beef is cooked. Top with eggs.',
+    'Lower chile amount recorded. Uses published spoon measures for oil and US-original cup measure for basil instead of inconsistent metric conversions. Basil cross-check: https://www.foodnetwork.com/fnk/recipes/spicy-basil-beef-pad-krapow-7963965'),
+  make('Vietnamese', 'Pork and Pâté Banh Mi', 'Main Dishes', 3, uk + 'pork-and-pate-banh-mi',
+    [[2,'cloves','garlic for pork'],[2,'','shallots'],[3,'tbsp','fish sauce'],[3,'tbsp','sugar for pork'],[1,'tbsp','lemongrass'],[null,'','black pepper'],[450,'g','pork butt'],[null,'','oil'],[2,'tbsp','water'],[95,'g','sugar for pickles'],[90,'ml','red wine vinegar'],[1,'tsp','salt'],[1,'tsp','peppercorns'],[2,'cloves','garlic for pickles'],[5,'sprigs','cilantro for pickles'],[330,'g','carrots'],[3,'tbsp','mayonnaise'],[6,'oz','pork pâté'],[1,'','long baguette'],[45,'g','cilantro'],[1,'','red jalapeño'],[1,'','cucumber'],[2,'tsp','light soy sauce']],
+    'Refrigerate pork in its marinade, then sauté until cooked. Dissolve pickle seasonings in vinegar and steep carrots. Split baguette into three sandwiches; layer mayonnaise, pâté, pork, drained pickles, vegetables and herbs.',
+    'Lower pickle garlic and cilantro amounts recorded. Pâté and lemongrass may need a larger supermarket.'),
+  make('Filipino', 'Lumpia', 'Appetizers', 30, uk + 'lumpia',
+    [[2,'cloves','garlic'],[2,'','scallions'],[0.25,'','onion'],[3,'oz','shiitake caps'],[4,'oz','water chestnuts'],[1,'lb','peeled shrimp'],[0.5,'lb','ground pork'],[2,'tsp','soy sauce'],[1,'tsp','fish sauce'],[1,'tsp','brown sugar'],[0.5,'tsp','black pepper'],[1.9,'L','neutral frying oil'],[30,'','lumpia wrappers'],[1,'','egg'],[60,'ml','sweet chili sauce'],[1,'tbsp','vinegar']],
+    'Finely process vegetables and shrimp; combine with pork and seasoning, then chill. Roll filling in wrappers and seal with egg. Fry in batches until crisp and cooked through. Mix chili sauce with vinegar for dipping.',
+    'Yield counts individual rolls, not people. Frying oil is a pan allowance, not consumption. Wrappers may require an Asian market.', 'rolls'),
+  make('Thai', 'Vegan Drunken Noodles', 'Main Dishes', 2, uk + 'vegan-drunken-noodles',
+    [[5,'tbsp','sweet soy sauce'],[3,'tbsp','vegetarian oyster sauce'],[3,'tbsp','Thai seasoning sauce'],[2,'tbsp','vegan sugar'],[2,'tsp','Sriracha'],[2,'tsp','minced garlic for sauce'],[6,'leaves','Thai basil for sauce'],[3,'tbsp','oil'],[2,'cloves','garlic'],[1,'','serrano chile'],[145,'g','extra-firm tofu'],[0.5,'','white onion'],[675,'g','fresh rice noodles'],[1,'cup','loosely packed Thai basil'],[120,'g','grape tomatoes']],
+    'Combine sauce ingredients. Stir-fry garlic and chile, then brown tofu and onion. Add noodles and toss until softened. Fold in sauce, basil and tomatoes and cook until the sauce is absorbed.',
+    'Lower quantity ranges recorded. Check sauces are vegan. Basil uses the US-original volume instead of the questionable metric weight: https://www.foodnetwork.com/recipes/vegan-drunken-noodles-11880619'),
+];
