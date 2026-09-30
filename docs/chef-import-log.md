@@ -80,3 +80,19 @@ Ten additions: marinara, basil pesto, simple Bolognese with pasta, chicken cacci
 All start Needs review. Live pre-import audit found 170 records, twelve Italian entries, and none of these ten dishes. Preserve existing review decisions. Sauce-only marinara and minestrone use batch yields where their pages omit portions; bruschetta counts toasts. Focaccia explicitly uses purchased pizza dough; simple Bolognese is labeled as Giada's simplified version. Eggplant source labels itself Member Exclusive. Tiramisu uses pasteurized yolks as an explicit NightFuel safety substitution. No photos or nutrition estimates imported.
 
 Registry total: 180, including removed recipes; not an active cookbook count.
+
+## Batches 019–023 — Fifty additional recipes
+
+Prepared September 30, 2026. Each batch has ten entries, all initially Needs review, with measured ingredients, condensed original cooking directions and the published source link. The user approved Greek specialists and added Sánchez, Zakarian and Brown as options while sourcing. This is not a FoodNetwork.com-only collection.
+
+| Batch | Collection |
+| --- | --- |
+| 019 | Giada/Giadzy: pizza dough, potato gnocchi, eggless pasta, caprese, polenta, fettuccine al burro, bean dip, panna cotta, lemon ricotta cookies, puttanesca |
+| 020 | Michael Chiarello: grilled tomato sauce, roasted strawberries, broccoli gratin, frico, ricotta pesto, balsamic steak sauce, fresh tomato olive sauce, salsa verde, asparagus bundles, roasted-lemon chicken |
+| 021 | Jet Tila (6): long-life noodles, beef khao soi, nabeyaki udon, California fried rice, steamed rockfish, sausage/chestnut rice. Alton Brown (4): slaw, sushi rice, sesame peanut sprouts, miso squid |
+| 022 | Michael Symon (3): spanakopita, salmon with lemon-egg sauce, feta eggs. Michael Psilakis (2): pepper-feta spread, tomato/bean/artichoke salad. Diane Kochilas (5): spanakorizo, skordalia, lentil-chard soup, briam, fasolada |
+| 023 | Aarón Sánchez (7): guacamole, birria, hominy, chorizo, street corn, carne asada, tomato-arbol salsa. Geoffrey Zakarian (3): corn soup, lamb with herb sauce, chicken skewers |
+
+Two Giadzy team recipes are credited to Giadzy rather than individually to Giada. Unspecified yields use batch/piece units; published ranges and clarifications are disclosed. The chorizo entry is explicitly the standalone component of its linked beans recipe. Prepared dressing, dashi and serving salsa are identified. Specialty ingredients remain named; no substitutions are silently presented as chef originals. Street-style pork krapow and Zakarian's incomplete tapenade meal were excluded for source gaps.
+
+No existing reviews or photos are changed. No nutrition or kitchen-testing claims. Registry now contains 230 unique source entries; the live database remains authoritative for review choices.

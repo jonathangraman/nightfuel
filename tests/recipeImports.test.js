@@ -7,9 +7,9 @@ import { validateRecipe, recipeToMeal } from '../src/lib/cookbook';
 
 it('provides collections of ten valid, distinct recipes with scalable groceries', () => {
   const newBatches = chefBatches.slice(2);
-  expect(newBatches).toHaveLength(16);
+  expect(newBatches).toHaveLength(21);
   const all = chefBatches.flatMap(b => b.recipes);
-  expect(new Set(all.map(r => r.importKey)).size).toBe(180);
+  expect(new Set(all.map(r => r.importKey)).size).toBe(230);
   for (const batch of newBatches) {
     expect(batch.recipes).toHaveLength(10);
     for (const r of batch.recipes) {
@@ -29,7 +29,7 @@ it('provides collections of ten valid, distinct recipes with scalable groceries'
     }
   }
   const earlier = [...chefBatch001, ...chefBatch002].map(r => ({ ...r, reviewStatus: 'removed' }));
-  expect(pendingImports(all, earlier)).toHaveLength(160);
+  expect(pendingImports(all, earlier)).toHaveLength(210);
   expect(pendingImports(all, all)).toEqual([]);
 });
 

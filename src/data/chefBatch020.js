@@ -1,0 +1,40 @@
+import { chefEntry } from './chefEntry.js';
+
+const entry = chefEntry('020-chiarello-italian', 'Michael Chiarello', 'Italian');
+const make = (slug, ...args) => ({ ...entry(args[0], args[1], args[2], `https://www.epicurious.com/recipes/food/views/${slug}`, ...args.slice(3)), sourceCheckedAt: '2026-09-30' });
+
+export const chefBatch020 = [
+  make('grilled-tomato-sauce-51177800', 'Grilled Tomato Sauce', 'Sauces & Condiments', 3.5,
+    [[3,'lb','tomatoes'],[1,'','red pepper'],[4,'tbsp','olive oil'],[2,'tsp','salt'],[0.5,'tsp','pepper'],[1,'cup','onion'],[1,'tbsp','garlic'],[1,'tbsp','oregano'],[2,'tbsp','wine vinegar'],[2,'tbsp','parsley']],
+    'Oil tomatoes and pepper with half the oil; grill until blistered. Peel, chop, reserve juices. Soften chopped onion in remaining oil; add garlic, oregano, tomatoes and juices. Reduce 10 minutes; add pepper, vinegar, parsley and seasoning.', '', 'cups'),
+  make('roasted-strawberries-51177410', 'Fire-Roasted Strawberries', 'Desserts', 1,
+    [[1.5,'lb','strawberries'],[null,'','salt'],[1.5,'tbsp','lemon juice'],[0.5,'cup','sugar']],
+    'Hull and quarter berries; toss with remaining ingredients in a 10-inch cast-iron skillet. Set over moderate embers on a fire grate. Cook about 3 minutes, toss, then continue until soft and syrupy, roughly 5 minutes total.',
+    'Outdoor-fire method; no oven temperature is specified. Published without portion count.', 'batch'),
+  make('broccoli-pecorino-gratinata-240745', 'Broccoli Pecorino Gratinata', 'Sides', 8,
+    [[3,'lb','broccoli'],[0.25,'cup','butter, plus dish'],[0.25,'tsp','chile flakes'],[null,'','salt and pepper'],[2/3,'cup','Pecorino']],
+    'Boil broccoli in salted water for 5 minutes, drain and cool. Slice florets thinly. Arrange in a buttered 9×13-inch dish, seasoning between layers. Dot with butter and scatter cheese and chile. Bake at 425°F about 20 minutes, until browned.'),
+  make('parmesan-and-smoky-paprika-frico-240743', 'Parmesan Paprika Frico', 'Appetizers', 16,
+    [[5,'cups','Parmesan'],[4,'tsp','smoked paprika'],[null,'','cooking spray']],
+    'Mix cheese and paprika. Spray a nonstick skillet; heat medium-low. Flatten quarter-cup portions into 3–4-inch rounds. Cook about 90 seconds until edges brown. Remove from heat until bubbling stops, flip, then cook another minute. Drain on paper; repeat.',
+    'Source yields 16–18 crisps; scaling uses 16.', 'crisps'),
+  make('hazelnut-ricotta-and-lemon-pesto-239059', 'Hazelnut Ricotta Lemon Pesto', 'Sauces & Condiments', 7/3,
+    [[1,'clove','garlic'],[0.5,'cup','toasted husked hazelnuts'],[0.5,'cup','basil'],[5,'tbsp','olive oil'],[1.5,'cups','ricotta'],[3,'tbsp','lemon juice'],[1.5,'tsp','lemon zest'],[3,'tbsp','Pecorino'],[null,'','salt and pepper']],
+    'Process garlic, nuts, basil and two tablespoons oil. Blend in ricotta, lemon juice, zest and remaining oil. Stir in Pecorino; season.', '', 'cups'),
+  make('roasted-garlic-balsamic-steak-sauce-239058', 'Roasted Garlic Balsamic Steak Sauce', 'Sauces & Condiments', 4,
+    [[1.5,'cups','water'],[0.75,'cup','raisins'],[0.5,'cup','balsamic'],[2,'tbsp','shallots'],[3,'','plum tomatoes'],[0.25,'cup','roasted garlic paste'],[0.25,'cup','applesauce'],[2,'tbsp','honey'],[1.5,'tbsp','apple jelly'],[1.5,'tbsp','Worcestershire'],[1,'clove','garlic'],[1,'tsp','salt'],[0.75,'tsp','mustard powder'],[0.5,'tsp','pepper']],
+    'Soak raisins in water for 15 minutes. Separately soak chopped shallots in balsamic for 15 minutes. Blend everything, including soaking liquids, in batches until smooth. Refrigerate at least 12 hours.', '', 'cups'),
+  make('fresh-tomato-olive-sauce-239057', 'Fresh Tomato Olive Sauce', 'Sauces & Condiments', 5,
+    [[1.5,'lb','plum tomatoes'],[12,'','Kalamata olives'],[0.5,'cup','olive oil'],[0.5,'cup','roasted peppers'],[0.25,'cup','red onion'],[3,'cloves','garlic'],[2,'tbsp','capers'],[2,'tbsp','lemon juice'],[2,'tbsp','parsley'],[1,'tbsp','oregano'],[0.5,'tsp','chile flakes'],[null,'','salt and pepper']],
+    'Chop vegetables, olives and herbs; mix with remaining ingredients. Let flavors combine for 1–2 hours at room temperature. Adjust seasoning before serving. This sauce is uncooked.', '', 'cups'),
+  make('italian-salsa-verde-239056', 'Italian Salsa Verde', 'Sauces & Condiments', 3,
+    [[4,'slices','crustless white bread'],[2,'tbsp','white wine vinegar'],[4,'cups','parsley'],[1.5,'cups','olive oil'],[15,'','cornichons'],[5,'','anchovies'],[0.25,'cup','capers'],[null,'','salt and pepper']],
+    'Tear bread and soak with vinegar for 15 minutes. Blend with all remaining ingredients until nearly smooth. Season to taste.', '', 'cups'),
+  make('roasted-asparagus-bundles-104858', 'Roasted Asparagus Bundles', 'Sides', 4,
+    [[1.5,'tsp','olive oil for crumbs'],[1,'tsp','garlic'],[0.25,'cup','breadcrumbs'],[null,'','salt and pepper'],[1,'tbsp','parsley'],[1,'tsp','lemon zest'],[1,'tbsp','Parmesan'],[null,'','butter'],[1,'lb','asparagus'],[2,'tbsp','olive oil'],[8,'slices','prosciutto']],
+    'Boil asparagus 4 minutes; cool. Toast crumbs and garlic in crumb oil; add herbs, zest, cheese. Oil and season asparagus; divide into four bundles, each wrapped with two prosciutto slices. Put in buttered dish, top with crumbs; bake 400°F for 10 minutes.'),
+  make('chicken-with-roasted-lemon-and-rosemary-sauce-104857', 'Chicken with Roasted Lemon', 'Main Dishes', 4,
+    [[1.5,'lb','potatoes'],[2,'','lemons'],[0.25,'cup','olive oil, plus lemons'],[null,'','salt and pepper'],[4,'','boneless skin-on chicken breasts'],[1,'tbsp','garlic'],[1,'cup','double-strength chicken stock'],[1,'tsp','rosemary'],[1,'tbsp','parsley']],
+    'Boil potatoes tender; halve. Oil halved lemons, broil 10 minutes; squeeze, strain. Season chicken; brown in oil, remove. Brown potatoes; drain oil. Add chicken; roast 450°F until cooked through. Remove solids. Brown garlic; deglaze with stock, lemon, herbs. Serve together.',
+    'NightFuel: chicken must reach 165°F.'),
+];
