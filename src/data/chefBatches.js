@@ -21,7 +21,8 @@ import { chefBatch020 } from './chefBatch020.js';
 import { chefBatch021 } from './chefBatch021.js';
 import { chefBatch022 } from './chefBatch022.js';
 import { chefBatch023 } from './chefBatch023.js';
+import { chefBatch024 } from './chefBatch024.js';
 
-export const chefBatches = [chefBatch001, chefBatch002, chefBatch003, chefBatch004, chefBatch005, chefBatch006, chefBatch007, chefBatch008, chefBatch009, chefBatch010, chefBatch011, chefBatch012, chefBatch013, chefBatch014, chefBatch015, chefBatch016, chefBatch017, chefBatch018, chefBatch019, chefBatch020, chefBatch021, chefBatch022, chefBatch023].map(recipes => ({
+export const chefBatches = [chefBatch001, chefBatch002, chefBatch003, chefBatch004, chefBatch005, chefBatch006, chefBatch007, chefBatch008, chefBatch009, chefBatch010, chefBatch011, chefBatch012, chefBatch013, chefBatch014, chefBatch015, chefBatch016, chefBatch017, chefBatch018, chefBatch019, chefBatch020, chefBatch021, chefBatch022, chefBatch023, chefBatch024].map(recipes => ({
   id: recipes[0].batchId, label: recipes[0].batchLabel, recipes,
 }));
